@@ -1,6 +1,7 @@
 #from kivy.uix.screenmanager import Screen
 # from kivy.lang import Builder
 from kivy.app import App
+from kivy.logger import Logger
 from datetime import datetime
 from screens.basescreen import BaseScreen
 from kivy.properties import ListProperty
@@ -28,7 +29,7 @@ class WorkScreen(BaseScreen):
         self.trabajo=App.get_running_app().getModel('TrabajosModel')
         
     def on_enter(self):
-        load_history()
+        self.load_history()
         
     def load_history(self):
         """
@@ -43,11 +44,11 @@ class WorkScreen(BaseScreen):
         formatted_data = []
         for index, registro in enumerate(trabajos):
             formatted_data.append({
-                'item_index': index, # Clave requerida para identificar la fila
+                'item_index': index,
+                'id': registro['id'],
                 'start_time': registro['tiempo_inicio'],
                 'end_time': registro['tiempo_final'],
                 'observation': registro['objservaciones'],
-                # Las propiedades que no definimos en la plantilla (ej. 'text') se ignoran.
             })
             Logger.info(f"datos={formatted_data=}")
         
@@ -74,7 +75,7 @@ class WorkScreen(BaseScreen):
                 Logger.info("Error: La fecha de fin debe ser posterior a la de inicio. formato: año - mes - dia espcio hora : minuto")
                 return 
             # insertar(tiempo_inicio, tiempo_final, tiempo_acumulado , observaciones, tags)
-            self.trabajo.insert( tiempo_inicio=start_str, tiempo_final=end_str,  tiempo_acumulado = acumulado.seconds ,  observaciones = observation,  tags ='{}'  )
+            self.trabajo.insertar( tiempo_inicio=start_str, tiempo_final=end_str,  tiempo_acumulado = acumulado.seconds ,  observaciones = observation,  tags ='{}'  )
                 
             
         except ValueError:
@@ -84,34 +85,22 @@ class WorkScreen(BaseScreen):
     # --- MÉTODOS PARA EDITAR Y ELIMINAR (NUEVOS) ---
     def remove_item(self, index_to_remove):
         """Elimina un registro basado en su índice en la lista de datos formateados."""
-        # Importante: El índice aquí es el índice en formatted_data,
-        # que debería coincidir con el índice en self.player.data['trabajo_historico']
-        
-        if 0 <= index_to_remove < len(self.player.data['trabajo_historico']):
-            # 1. Eliminar del DataManager
-            #del self.player.data['trabajo_historico'][index_to_remove]
-            #self.player.save_data()
+        if 0 <= index_to_remove < len(self.history_data):
+            registro_id = self.history_data[index_to_remove].get('id')
+            if registro_id:
+                self.trabajo.borrar(registro_id)
             Logger.info(f"Prueba de indice para remover {index_to_remove} ")
-            
-            # 2. Refrescar la vista
             self.load_history()
         else:
             Logger.info(f"Error: Índice {index_to_remove} fuera de rango.")
 
     def edit_item(self, index_to_edit):
         """
-        Lógica para editar. Esto generalmente implica cargar los datos 
-        de ese índice en los TextInput superiores y quizás cambiar el botón 
-        de "Agregar" a "Guardar Cambios".
+        Carga los datos de un registro en los campos de entrada para edición.
         """
-        print(f"LÓGICA DE EDICIÓN: Preparando para editar el índice {index_to_edit}")
-        
-        registro = self.player.data['trabajo_historico'][index_to_edit]
-        
-        # Cargar los datos antiguos en los campos de entrada para edición
-        self.ids.start_time_input.text = registro['inicio']
-        self.ids.end_time_input.text = registro['fin']
-        self.ids.obs_input.text = registro['observacion']
-        
-        # **PENDIENTE:** Debes implementar lógica para cambiar el botón
-        # de 'Agregar' a 'Guardar Cambios' y pasarle el índice a editar.
+        Logger.info(f"LÓGICA DE EDICIÓN: Preparando para editar el índice {index_to_edit}")
+        if 0 <= index_to_edit < len(self.history_data):
+            registro = self.history_data[index_to_edit]
+            self.ids.start_time_input.text = registro.get('start_time', '')
+            self.ids.end_time_input.text = registro.get('end_time', '')
+            self.ids.obs_input.text = registro.get('observation', '')

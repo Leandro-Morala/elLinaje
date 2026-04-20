@@ -27,11 +27,24 @@ class VersesScreen(BaseScreen):
 
     def update_verse_count(self):
         """Actualiza la propiedad con la cantidad actual de versículos."""
-        count = len(self.player.data_get('versiculos', {}))
+        versiculos = self.user.get_tag(1, 'versiculos') or {}
+        count = len(versiculos)
         self.verse_count = f"Versículos almacenados: {count}"
-    
+
+    def _add_verse_to_db(self, libro, capitulo, verse_num, texto):
+        versiculos = self.user.get_tag(1, 'versiculos') or {}
+        key = f"{libro}_{capitulo}_{verse_num}"
+        if key in versiculos:
+            return (False, "Versículo ya existe")
+        versiculos[key] = {
+            'libro': libro, 'capitulo': capitulo, 'versiculo': verse_num,
+            'texto': texto, 'veces_acertado': 0, 'veces_fallado': 0, 'nivel_refuerzo': 0
+        }
+        self.user.set_tag(1, 'versiculos', versiculos)
+        return (True, "ok")
+
     def add_verse(self,libro, capitulo,verse_num_input , text_input ):
-        ok=self.player.add_verse(libro,capitulo,verse_num_input,text_input )
+        ok=self._add_verse_to_db(libro,capitulo,verse_num_input,text_input)
         if ok[0]:
             self.ids.status_add.text = f"✅ versiculo agregado."
             self.ids.book_input.text = ''
@@ -46,7 +59,7 @@ class VersesScreen(BaseScreen):
             
     def iniciar_partida(self):
         """Selecciona un versículo y configura las opciones de juego."""
-        versiculos = self.player.data_get('versiculos', {})
+        versiculos = self.user.get_tag(1, 'versiculos') or {}
         #if len(versiculos) < 5:
         #    self.game_status = "Necesitas al menos 5 versículos para iniciar la partida."
         #    return
@@ -165,23 +178,24 @@ class VersesScreen(BaseScreen):
 
     def finalizar_partida(self, exito, mensaje):
         """Actualiza el estado del versículo basado en el resultado."""
-        
-        versiculo = DM.data['versiculos'][self.current_verse_key]
-        
+
+        versiculos = self.user.get_tag(1, 'versiculos') or {}
+        versiculo = versiculos[self.current_verse_key]
+
         if exito:
             versiculo['veces_acertado'] += 1
             versiculo['nivel_refuerzo'] = min(5, versiculo['nivel_refuerzo'] + 1)
         else:
             versiculo['veces_fallado'] += 1
             versiculo['nivel_refuerzo'] = max(0, versiculo['nivel_refuerzo'] - 1)
-            
-            # Lógica de eliminación: si falla y el nivel es 0 (o bajo)
+
             if versiculo['nivel_refuerzo'] == 0:
-                del DM.data['versiculos'][self.current_verse_key]
-                DM.update_player_data('nivel_versiculos', DM.get_player_data()['nivel_versiculos'] - 1)
+                del versiculos[self.current_verse_key]
+                nivel_actual = self.user.get_player_data('nivel_versiculos') or 0
+                self.user.update_player_data('nivel_versiculos', nivel_actual - 1)
                 mensaje += " ¡El versículo ha sido olvidado y eliminado!"
-                
-        DM.save_data()
+
+        self.user.set_tag(1, 'versiculos', versiculos)
         self.update_verse_count()
         self.game_status = mensaje
         self.ids.game_text.text = "Partida finalizada. ¡Juega de nuevo!"

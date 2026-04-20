@@ -9,6 +9,8 @@ from kivy.uix.popup import Popup
 from kivy.clock import Clock, mainthread
 from kivy.metrics import dp
 from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.filechooser import FileChooserListView
 from kivy.utils import platform
 
 from datetime import datetime
@@ -61,15 +63,13 @@ class BaseScreen(Screen):
         Actualiza la propiedad 'text' de un widget Kivy identificado por su ID,
         solo si el ID está disponible en el diccionario self.ids.
         """
-        if hasattr(self,ids,widget_id):
-            #solo actualiza si el id del widget existe en el diccionario:
+        if widget_id in self.ids:
             try:
-                self.ids[widget_id].text =str(texto)
-            except Attribute:
+                self.ids[widget_id].text = str(texto)
+            except AttributeError:
                 Logger.error(f"ERROR: El widget {widget_id} existe, pero no tiene la propiedad '.text'.")
         else:
-            # esto como advertencia:
-            Logger.error(f"ADVERTENCIA {ids=} NO ENCONTRADO O NO CARGADO TODAVIA.")
+            Logger.error(f"ADVERTENCIA {widget_id!r} NO ENCONTRADO O NO CARGADO TODAVIA.")
 
     ###############      MODAL POPAPS                             #######################
     def confirm_exit(self,texto, callback):

@@ -1,7 +1,7 @@
 import os
 
 defaultConfig={
-    'VERSION': [1,0,1] ,
+    'VERSION': [0,2,8] ,
     
     # config file
     'CONFIG_PATH' :         os.path.join('data','config.json' ), 

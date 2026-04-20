@@ -15,6 +15,8 @@ from db.base import DatabaseManager
 from db.libros import LibrosBiblicosModel 
 from db.oraciones import OracionesModel 
 from db.trabajos import TrabajosModel
+from db.proposito import PropositoModel
+from db.pasos import PasosModel
 from db.usuario import UsuariosModel
 from db.capitulos import CapitulosModel
 #importacion de libreria especial:
@@ -73,8 +75,6 @@ class GameApp(App):
         
         #DatabaseManager.configurar( ('data','ElLinaje.db') )
         Logger.info(f"ruta de base de datos:{self.app_config['DB_PATH']}")
-        Logger.info(f"ruta de base de datos:{self.app_config['DB_PATH']}")
-        Logger.info(f"ruta de base de datos:{self.app_config['DB_PATH']}")
         
         DatabaseManager.configurar( 
             db_path = (self.app_config['DB_PATH'],) ,
@@ -100,6 +100,12 @@ class GameApp(App):
         self.trabajos = TrabajosModel()
         self.dbmodel.update({"TrabajosModel":self.trabajos})
         
+        self.proposito = PropositoModel()
+        self.dbmodel.update({"PropositoModel":self.proposito})
+        
+        self.pasos = PasosModel()
+        self.dbmodel.update({"PasosModel":self.pasos})
+                
         # los datos de la persona se almacenaran aqui
         self.usuariomodel = UsuariosModel()
         self.dbmodel.update({"UsuariosModel":self.usuariomodel})
@@ -141,7 +147,6 @@ class GameApp(App):
         sm.add_widget(WelcomeScreen(name='welcome'))        # plantilla de bienvenida
         sm.add_widget(PlayerDataScreen(name='player_data')) # plantilla de ingreso de datos personales
         sm.add_widget(FaithDataScreen(name='faith_data'))   # plantilla de datos para aceptar a Cristo y Bautizarse
-        sm.add_widget(FaithDataScreen(name='help_data'))  # registrar plantilla de ayuda, sera necearia para varias areas
         
         # Añadir todas las pantallas
         # Cada clase de pantalla cargará su propio archivo .kv

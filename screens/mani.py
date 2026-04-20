@@ -64,7 +64,7 @@ class ManiScreen(BaseScreen):
         
         print(f"DEBUG: Registros formateados ({len(formatted_data)}): {formatted_data[:2]}")
         # Esto notifica a Kivy que la lista ha cambiado y debe redibujar
-        self.history_dataS = formatted_data
+        self.history_mn_data = formatted_data
         
     def add_manual_registro(self, start_str, end_str, observation):
         # Llama a la lógica anterior para guardar

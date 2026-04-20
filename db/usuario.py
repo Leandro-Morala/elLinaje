@@ -58,7 +58,7 @@ class UsuariosModel(db):
             try:
                 #actualizar en la base de datos la informacion
                 self.actualizar(idusr,username=usr,password=pas,mail=mail,tags=tagDump,rol=rol)
-            except Eception as e:
+            except Exception as e:
                 Logger.error(f"{e}")
                 return False
             return True

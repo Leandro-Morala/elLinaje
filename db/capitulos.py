@@ -14,7 +14,7 @@ class CapitulosModel(db):
             ('idlibro',None,'INTEGER NOT NULL REFERENCES librosbiblicos(id)')
         ]
     
-    def insertar(cap_ver_vers, texto , id_libro , tag , idlibro ):
+    def insertar(self, cap_ver_vers, texto , id_libro , tag , idlibro ):
         '''
             modulo para insertar libros dentro de la base de datos generica
         '''

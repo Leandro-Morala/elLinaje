@@ -33,7 +33,7 @@ source.exclude_dirs = data, oldata
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.2.9
+version = 0.2.8
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]

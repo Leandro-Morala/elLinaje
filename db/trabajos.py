@@ -20,12 +20,12 @@ class TrabajosModel(db):
             ]
                 
 
-    def insertar(tiempo_inicio, tiempo_final, tiempo_acumulado , observaciones, tags):
+    def insertar(self, tiempo_inicio, tiempo_final, tiempo_acumulado , observaciones, tags):
         '''
             modulo para insertar libros dentro de la base de datos generica
             inicio = datetime.strptime(start_str, '%Y-%m-%d %H:%M:%S')
         '''
-        tiempo = datetime( tiempo_inicio , TrabajosModel.DATE_FORMAT ) 
+        tiempo = datetime.strptime( tiempo_inicio , TrabajosModel.DATE_FORMAT )
         return self.__insertar__(
             tiempo_inicio=tiempo_inicio,
             tiempo_final=tiempo_final,

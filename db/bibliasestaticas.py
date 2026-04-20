@@ -38,10 +38,15 @@ class bookModel(db):
         return todos
 
     def _un_libro_(self,idLibro):
+        '''
+            devolver datos del libro
+        '''
         table_name=self.table_name()
-        query = f"SELECT b.name,v.id, v.book_id,v.chapter,v.verse,v.text FROM {table_name} v INNER JOIN book b ON b.id = v.book_id WHERE v.book_id = ?  ;"
+        query= f"SELECT id, book_reference_id, testament_reference_id, name from {table_name} WHERE id = ? LIMIT 1  ;"
         cursor = self.__run_executa_sql__(query,(idLibro,),'SELECT') 
         return cursor.fetchall()
+        
+
 '''
 CREATE TABLE metadata (
 	"key" VARCHAR(255) NOT NULL, 
@@ -217,11 +222,11 @@ class Biblia:
             Recupera todos los versículos de un capitulo de un libro.
         """
         # saber cuantos versiculos son
-        total_versiculos=self.countVersiculos( idLibro,Capitulo)
+        total_versiculos=self.countVersiculos( idLibro,capitulo)
         respuesta = []
-        
+
         for x in range(1, total_versiculos+1 ):
-            self.buscarVersiculo(idlibro,capitulo,x)
+            self.buscarVersiculo(idLibro,capitulo,x)
         
 
     
@@ -252,10 +257,10 @@ class Biblia:
         if idbook != -1:
             # alternativa idregistro, book_reference, testament_reference , name
             Logger.error(f"falla al buscar libro:: {idbook}")
-            resultados = self.Libro._un_libro_(idbook)
-            idregistro,book_reference,testament_reference,name = resultados
-            
-            return idregistro,book_reference,testament_reference,name
+            resultados = self._biblia_.baseBooks._un_libro_(idbook)
+            if resultados:
+                idregistro,book_reference,testament_reference,name = resultados[0]
+                return idregistro,book_reference,testament_reference,name
         return None
     
     def __checker_libros_(self,nombre_libro,rutePath):
@@ -342,11 +347,11 @@ class Biblia:
         #return self.Libro.get_all_names()
         # nombre de los libros en la tabla seleccionada
         respuesta = self._biblia_.books.get_all_names()
-        respustaBase = self._biblia_.basebooks.get_all_names()
+        respustaBase = self._biblia_.baseBooks.get_all_names()
         # bucar si FaltanLibros
         for items in respustaBase:
             if not items in respuesta :
-                Logger.debug(f"{items=} no esta en {respueta=}")
+                Logger.debug(f"{items=} no esta en {respuesta=}")
             
         return respuesta
         
@@ -376,11 +381,11 @@ class Biblia:
         resultados = self._biblia_.baseVerse.countVersiculo(idLibro,Capitulo)
         return int(resultados)
     
-    def _getVersiculoUnico(idbook,capitulo,versiculo):
+    def _getVersiculoUnico(self, idbook,capitulo,versiculo):
         '''
             devolver el versiculo biblico
         '''
-        rst=self._biblia_.versiculo.versiculo(idbook,capitulo,versiculo)
+        rst=self._biblia_.verses.versiculo(idbook,capitulo,versiculo)
         if not rst :
             Logger.warning("no se encontro en la ruta original, devolviendo el de base.")
             # si no existe devolver el de la base

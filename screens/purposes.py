@@ -1,5 +1,6 @@
 from screens.basescreen import BaseScreen
 from kivy.logger import Logger
+from kivy.app import App
 
 from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
@@ -26,21 +27,20 @@ class PurposeRow(ButtonBehavior, BoxLayout):
         app.root.current = 'purpose_edit'
         
 class PurposesScreen(BaseScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.proposito = App.get_running_app().getModel('PropositoModel')
+
     def on_enter(self):
-        # Limpiar y recargar la tabla desde el DataManager
         self.ids.purposes_container.clear_widgets()
-        data = self.player.get_all_propositos() # Asumiendo que tienes este método
-        
-        contador=0
-        for item in data.values():
-            # print(f"{item=}")
+        data = self.proposito.obtener_todos() or []
+
+        for item in data:
             row = PurposeRow(
-                objetivo=str(contador) ,
-                actualizacion=str(item['fecha_limite']),
-                logros=str(item['completado']),
-                ayuda_dios=str(item['ayudaDeDios']),
+                objetivo=str(item['proposito']),
+                actualizacion=str(item['fecha_creacion']),
+                logros=str(item['objetivo']),
+                ayuda_dios='',
                 id_registro=str(item['id']),
             )
-            contador+=1
-            # print(f"{item['descripcion']}") #,
             self.ids.purposes_container.add_widget(row)
