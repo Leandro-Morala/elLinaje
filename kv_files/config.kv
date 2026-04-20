@@ -1,0 +1,89 @@
+<ConfigScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgb: 0.05, 0.05, 0.05 # Fondo casi negro
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        # Encabezado
+        Label:
+            text: "Configuración y Datos"
+            font_size: '24sp'
+            bold: True
+            size_hint_y: None
+            height: '80dp'
+
+        ScrollView:
+            BoxLayout:
+                orientation: 'vertical'
+                padding: '20dp'
+                spacing: '15dp'
+                size_hint_y: None
+                height: self.minimum_height
+
+                # --- SECCIÓN PERFIL ---
+                Label:
+                    text: "Cuenta de Usuario"
+                    halign: 'left'
+                    text_size: self.width, None
+                    color: 0.7, 0.7, 0.7, 1
+
+                Button:
+                    text: "📝 Reingresar Datos de Perfil"
+                    size_hint_y: None
+                    height: '60dp'
+                    on_release: root.go_to_profile_edit()
+                    background_color: 0.2, 0.4, 0.8, 1
+
+                Widget:
+                    size_hint_y: None
+                    height: '20dp'
+
+                # --- SECCIÓN BACKUP ---
+                Label:
+                    text: "Copia de Seguridad (Backup)"
+                    halign: 'left'
+                    text_size: self.width, None
+                    color: 0.7, 0.7, 0.7, 1
+
+                Button:
+                    text: "📥 Exportar todo (.zip)"
+                    size_hint_y: None
+                    height: '60dp'
+                    on_release: root.open_file_manager(mode='export')
+                    background_color: 0.1, 0.6, 0.3, 1
+
+                Button:
+                    text: "📤 Importar desde archivo"
+                    size_hint_y: None
+                    height: '60dp'
+                    on_release: root.open_file_manager(mode='import')
+                    background_color: 0.6, 0.4, 0.2, 1
+
+                # Información adicional
+                Label:
+                    text: "El Linaje v0.1\nLos datos se guardan de forma local."
+                    halign: 'center'
+                    font_size: '12sp'
+                    color: 0.4, 0.4, 0.4, 1
+                    size_hint_y: None
+                    height: '100dp'
+
+                Button:
+                    text: "Abrir buscar Versiculos"
+                    size_hint_y: None
+                    height: '60dp'
+                    on_release: root.openbible()
+                    background_color: 0.6, 0.4, 0.2, 1
+        # Botón Volver
+        Button:
+            text: "Volver al Menú Principal"
+            size_hint_y: None
+            height: '50dp'
+            on_release:
+                app.root.transition.direction = 'right'
+                root.manager.current = 'main'
+            background_color: 0.5, 0.1, 0.1, 1

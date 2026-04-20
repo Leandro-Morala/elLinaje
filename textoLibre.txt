@@ -1,0 +1,35 @@
+
+            trabajo.insert( 
+                tiempo_inicio=start_str, 
+                tiempo_final=end_str, 
+                tiempo_acumulado , 
+                observaciones=observation, 
+                tags ='{}' )
+                
+def load_history(self):
+        """
+            no es necesario cargar datos historicos al inicizliar la aplicacion
+        
+        """
+        # Asegúrate de que el DataManager tenga una clave 'trabajo_historico'
+        
+        historico_bruto = self.player.data_get('trabajo_historico', [])
+        Logger.info(f"load_history....{historico_bruto=}")
+        # Formatear los datos para el RecycleView:
+        # El RecycleView espera una lista de diccionarios, donde cada diccionario
+        # contiene las claves usadas en la plantilla (<WorkHistoryItem>).
+        
+        formatted_data = []
+        for index, registro in enumerate(historico_bruto):
+            formatted_data.append({
+                'item_index': index, # Clave requerida para identificar la fila
+                'start_time': registro['inicio'],
+                'end_time': registro['fin'],
+                'observation': registro['observacion'],
+                # Las propiedades que no definimos en la plantilla (ej. 'text') se ignoran.
+            })
+            print(f"datos={formatted_data=}")
+        
+        print(f"DEBUG: Registros formateados ({len(formatted_data)}): {formatted_data[:2]}")
+        # Esto notifica a Kivy que la lista ha cambiado y debe redibujar
+        self.history_dataS = formatted_data

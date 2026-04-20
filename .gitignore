@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Buildozer
+.buildozer/
+
+# Binarios compilados
+bin/
+
+# Base de datos local
+data/
+
+
+# Entorno virtual Python
+lib/
+lib64/
+include/
+pyvenv.cfg
+share/
+
+# Archivos viejos/backup
+oldata/
+
+# Geany
+*.geany
+
+# Logs
+*.log

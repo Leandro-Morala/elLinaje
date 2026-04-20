@@ -1,0 +1,161 @@
+<BotonEstilizado>:
+    orientation: 'horizontal'
+    padding: [dp(20), dp(10)]
+    spacing: dp(15)
+    # size_hint se deja en (1, 1) para que el contenedor padre (como un GridLayout) lo controle
+    size_hint: (1, 1)
+    
+    canvas.before:
+        # 1. SOMBRA
+        Color:
+            rgba: (0, 0, 0, 0.2)
+        RoundedRectangle:
+            pos: (self.x + dp(2), self.y - dp(2))
+            size: self.size
+            radius: self.radio_borde
+            
+        # 2. FONDO DINÁMICO
+        Color:
+            rgba: self.color_fondo if self.state == 'normal' else [c * 0.8 for c in self.color_fondo[:3]] + [1]
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: self.radio_borde
+
+    # Estructura interna única
+    Widget:
+        size_hint_x: 0.2 # Espaciador para centrar el contenido
+
+    Image:
+        id: icono_w
+        source: root.icono
+        size_hint: (None, None)
+        size: (dp(25), dp(25))
+        pos_hint: {'center_y': .5}
+        opacity: 1 if root.mostrar_icono else 0
+
+    Label:
+        id: label_w
+        text: root.texto
+        font_name: root.fuente
+        font_size: '16sp'
+        color: (0.1, 0.1, 0.1, 1)
+        valign: 'middle'
+        halign: 'left'
+        text_size: self.size
+
+    Widget:
+        size_hint_x: 0.2
+
+
+<RolloBiblico>:
+    size_hint: (0.9, 0.9)
+    auto_dismiss: False
+    background: ''  # Quita el fondo por defecto
+    background_color: (0, 0, 0, 0.5) # Sombra oscura detrás del modal
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [dp(15), dp(25)]
+        spacing: dp(10)
+        canvas.before:
+            # Efecto de Pergamino (Color Crema/Hueso)
+            Color:
+                rgba: (0.96, 0.92, 0.84, 1) 
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(20), dp(5), dp(20), dp(5)] # Estilo irregular
+            
+            # Bordes decorativos (Línea sutil)
+            Color:
+                rgba: (0.8, 0.7, 0.5, 1)
+            Line:
+                width: 1.2
+                rounded_rectangle: (self.x + 5, self.y + 5, self.width - 10, self.height - 10, dp(18))
+
+        # --- CABECERA ---
+        BoxLayout:
+            size_hint_y: None
+            height: dp(60)
+            spacing: dp(10)
+            
+            Label:
+                text: root.titulo_libro
+                font_name: app.app_config['FONT_NAME']
+                font_size: '28sp'
+                color: (0.3, 0.2, 0.1, 1) # Marrón oscuro
+                halign: 'left'
+                text_size: self.size
+                valign: 'middle'
+                markup: True
+                
+            # Selector de Versículos (Scroll Horizontal)
+            ScrollView:
+                do_scroll_y: False
+                size_hint_x: 0.6
+                GridLayout:
+                    id: grid_versiculos
+                    rows: 1
+                    size_hint_x: None
+                    width: self.minimum_width
+                    spacing: dp(5)
+                    # Aquí se añadirán botones dinámicamente
+
+            # Botón de Cerrar (X)
+            Button:
+                text: 'X'
+                size_hint: (None, None)
+                size: (dp(40), dp(40))
+                pos_hint: {'center_y': .5}
+                background_normal: ''
+                background_color: (0.8, 0.3, 0.3, 1)
+                on_release: root._cerrar_()
+
+        # --- CONTENIDO (PASAJES) ---
+        ScrollView:
+            id: scroll_texto
+            canvas.before:
+                Color:
+                    rgba: (0, 0, 0, 0.05) # Sutil sombra interna
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Label:
+                text: root.contenido_texto
+                font_size: '20sp'
+                color: (0.2, 0.15, 0.1, 1)
+                line_height: 1.3
+                markup: True
+                size_hint_y: None
+                # height: self.minimum_height
+                height: self.texture_size[1]
+                text_size: self.width - dp(40), None
+                padding: [dp(20), dp(20)]
+
+        # --- PIE DE PÁGINA ---
+        BoxLayout:
+            size_hint_y: None
+            height: dp(65)
+            spacing: dp(10)
+            padding: [0, dp(10), 0, 0]
+
+            BotonEstilizado:
+                texto: "Anterior"
+                mostrar_icono: False
+                color_fondo: (0.85, 0.8, 0.7, 1)
+                on_release: root.pagina_anterior()
+
+            BotonEstilizado:
+                texto: "Buscar"
+                icono: "images/search_icon.png"
+                color_fondo: (0.9, 0.85, 0.7, 1)
+                on_release: root.abrir_busqueda()
+
+            BotonEstilizado:
+                texto: "Siguiente"
+                mostrar_icono: False
+                color_fondo: (0.85, 0.8, 0.7, 1)
+                on_release: root.pagina_siguiente()
+                

@@ -1,0 +1,127 @@
+# estilo grafico:
+#   total acumulado/restante: <hora>:<minuto>:<segundo> (maximo 24hs)
+#   mostrar tabla de los ultimos 10 registros de oraciones hechas y los tiemops hechos.
+#   TIEMPO HORANDO
+#   <hora>:<minuto>:<segundo>
+#  <boton-estilizado-dorado: iniciar oracion>
+#  <boton-estilizado-gris: volver al principal>
+#:import utils kivy.utils
+
+<OracionesRow@ButtonBehavior+BoxLayout>:
+    # Este widget representa una fila de la tabla
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '50dp'
+    padding: '5dp'
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#2c3e50') if self.state == 'normal' else utils.get_color_from_hex('#34495e')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: 1, 1, 1, 0.1 # Línea divisoria
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y
+
+    # Datos de la fila (deben coincidir con tu lógica de Python)
+    Label:
+        text: root.tiempo_inicio
+        halign: 'center'
+    Label:
+        text: root.TiempoOrado
+        halign: 'center'
+    Label:
+        text: root.observaciones
+        halign: 'center'
+        italic: True
+        font_name: app.app_config['FONT_NAME']
+        
+<PrayerScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '20dp'
+        
+        # total de tiempo acumulado 
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: '20dp'
+            spacing: '20dp'
+
+            Label:
+                text: "Total acumulado:"
+                font_size: '25sp'
+                size_hint_y: 0.1
+                
+            Label:
+                id: total_dilsplay
+                text: root.timer_total_text
+                font_size: '30sp'
+                size_hint_y: 0.6
+        # --- ENCABEZADO DE LA TABLA (Fijo) ---
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '40dp'
+            canvas.before:
+                Color:
+                    rgb: 0.2, 0.2, 0.2
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: "Fecha de Oracion"
+                bold: True
+            Label:
+                text: "Tiempo Acumulado"
+                bold: True
+            Label:
+                text: "Resultados"
+                bold: True
+
+        # --- ÁREA DE SCROLL (Registros) ---
+        ScrollView:
+            do_scroll_x: False
+            GridLayout:
+                id: oraciones_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '2dp'
+                # Aquí se añadirán dinámicamente las filas desde Python
+
+        # --- LEYENDA INFERIOR ---
+        Label:
+            text: "Haz clic en un registro para editarlo"
+            size_hint_y: None
+            height: '30dp'
+            font_size: '12sp'
+            color: 0.6, 0.6, 0.6, 1
+        
+        Label:
+            text: "Tiempo Orando"
+            font_size: '25sp'
+            size_hint_y: 0.1
+            
+        Label:
+            id: timer_display
+            text: root.timer_text
+            font_size: '80sp'
+            size_hint_y: 0.6
+            
+        BotonEstilizado:
+            id: start_stop_button
+            text: root.button_text
+            color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+            font_size: '30sp'
+            size_hint_y: 0.2
+            on_release: root.start_stop_timer()
+            
+        BotonEstilizado:
+            text: "Volver al Principal"
+            color_fondo: (0.3, 0.3, 0.3, 0.6) # gris suave
+            size_hint_y: 0.1
+            on_release:
+                app.root.transition.direction = 'right'
+                app.root.current = 'main'

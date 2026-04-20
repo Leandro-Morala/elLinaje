@@ -1,0 +1,75 @@
+<PlayerDataScreen>:
+    name: 'player_data'
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '15dp'
+
+        Label:
+            text: '[b]¡Conócete![/b]'
+            font_size: '30sp'
+            size_hint_y: None
+            height: '50dp'
+            markup: True
+
+        # Sección de Foto/Selfie
+        BoxLayout:
+            size_hint_y: None
+            height: '100dp'
+            spacing: '10dp'
+            
+            Image:
+                id: player_image
+                source: 'images/default_profile.png' # Asume que tienes una imagen por defecto
+                size_hint_x: None
+                width: '100dp'
+                allow_stretch: True
+                keep_ratio: True
+                
+            Button:
+                text: 'Subir Foto / Selfie (Opcional)'
+                size_hint_x: 0.7
+                on_release: print('Abrir diálogo para subir foto...') # Aquí va la lógica de subida
+
+        # Campos de Entrada
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Label:
+                text: 'Nombre:'
+                size_hint_x: 0.3
+            TextInput:
+                id: name_input
+                multiline: False
+                on_text: root.player_name = self.text
+        
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Label:
+                text: 'Apellido:'
+                size_hint_x: 0.3
+            TextInput:
+                id: lastname_input
+                multiline: False
+                on_text: root.player_lastname = self.text
+        
+        # Espaciador
+        Widget:
+
+        # Botones de Navegación
+        BoxLayout:
+            size_hint_y: None
+            height: '50dp'
+            spacing: '10dp'
+            
+            Button:
+                text: 'Omitir'
+                on_release: root.skip()
+                background_color: 0.5, 0.5, 0.5, 1 # Gris
+
+            Button:
+                text: 'Guardar y Continuar'
+                on_release: root.save_and_continue()
+                background_color: 0.1, 0.6, 0.1, 1 # Verde

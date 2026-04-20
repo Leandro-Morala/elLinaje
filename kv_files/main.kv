@@ -1,0 +1,144 @@
+#: import ClickableImage screens.main.ClickableImage 
+
+# Importar la nueva clase
+
+# esta es la pantalla principal. vertical 
+<MainScreen>:
+    name: 'main'
+    BoxLayout:  # <-- Layout Principal VERTICAL que organiza el contenido
+        orientation: 'vertical'
+            
+        # Sección de Perfil (Nombre, Foto, Nivel, Poder)
+        BoxLayout:
+            size_hint_y: 0.3
+            orientation: 'horizontal'
+            # Foto de Perfil (usar Image)
+            BoxLayout:
+                size_hint_x: 0.2 # Ocupa el 30% del ancho
+                # Usamos un Button para envolver la Image. El Button es clickeable.
+                Button:
+                    background_normal: '' # Eliminar el fondo por defecto
+                    background_color: 0, 0, 0, 0 # Hacer el botón transparente
+                    on_release: app.root.current = 'player_data' # Redirigir al clic
+
+                    Image: # Colocamos la Image DENTRO del Button
+                        source: root.get_player_data_foto_perfil()
+                        # Las propiedades size y pos de Image son heredadas de su padre (Button)
+                        # No necesitas size_hint_y aquí.
+                        allow_stretch: True
+                        keep_ratio: True
+                        center: self.parent.center # Centra la imagen dentro del botón
+                        size: self.parent.size # Hace que la imagen ocupe el tamaño del botón
+
+        
+            # Sección de Perfil (Nombre, Nivel, Poder)
+            
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: '5dp'
+                Label:
+                    id:player_name
+                    text:root.player_name
+                    font_size: '18sp'
+                    size_hint_y: 0.3
+                
+                Label:
+                    id: nivel_label
+                    text: root.nivel_label
+                
+                Label:
+                    id: user_level
+                    text: "Poder de Oración Restante"
+                
+                ProgressBar:
+                    id: power_bar
+                    max: root.power_max
+                    value: root.power_value
+                    
+                Label:
+                    text: root.power_text
+                    
+        # Botones de Navegación
+        GridLayout:
+            size_hint_y: 0.6
+            cols: 2
+            spacing: '10dp'
+            
+            #Button:
+            #    text: "Oración"
+            #    on_release: app.root.current = 'prayer'
+            # Botón tipo Celestial
+            BotonEstilizado:
+                texto: "Oración"
+                icono: "images/pray_icon.png"
+                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                on_release: root.manager.current = 'prayer'
+            #Button:
+            #    text: "Versículos Bíblicos"
+            #    on_release: app.root.current = 'verses'
+            
+            BotonEstilizado:
+                texto: "Lectura Bíblica"
+                icono: "images/pray_icon.png"
+                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                on_release: root.manager.current = 'verses'
+            
+            BotonEstilizado:
+                texto: "Colaboraciones"
+                icono: "images/work_icon.png"
+                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                on_release: root.manager.current = 'work'
+            #Button:
+            #    text: "Tiempo en la Iglesia"
+            #    on_release: app.root.current = 'work'
+            
+            BotonEstilizado:
+                texto: "Ofrendas"
+                icono: "images/ofrendas_icon.png"
+                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                on_release: root.manager.current = 'mani'
+            
+            #Button:
+            #    text: "Ofrendas" # Esta acción aún no tiene pantalla definida, se podría modelar en un input
+            #    on_release: app.root.current = 'mani'
+            
+            BotonEstilizado:
+                texto: "Metas"
+                icono: "images/metas_icon.png"
+                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                on_release: root.manager.current = 'purposes'
+            #Button:
+            #    text: "Propósitos Personales"
+            #    on_release: app.root.current = 'purposes'
+            
+            GridLayout:
+                size_hint_y: 0.6
+                cols: 2
+                spacing: '10dp'            
+
+                BotonEstilizado:
+                    texto: "Configuraciones"
+                    icono: "images/config_icon.png"
+                    color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                    on_release: 
+                        app.root.transition.direction = 'left'
+                        root.manager.current = 'config'
+                       
+                #Button:
+                #    text: "Configuración"
+                #    on_release:
+                #        app.root.transition.direction = 'left'
+                #        app.root.current = 'config'
+                
+                BotonEstilizado:
+                    texto: "Salir"
+                    icono: "images/salir_icon.png"
+                    color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                    on_release: 
+                        app.root.transition = WipeTransition(duration=0.5)
+                        app.salir_del_juego()
+                
+                #Button:
+                #    text: "Salir"
+                #    on_release: app.salir_del_juego()

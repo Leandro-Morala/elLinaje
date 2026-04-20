@@ -1,0 +1,20 @@
+elLinaje/
+├── main.py             # Lanza la app y el ScreenManager.
+├── data_manager.py     # Gestión de datos (JSONStore). (Sin cambios)
+├── screens/            # Carpeta para módulos de pantalla
+│   ├── __init__.py     # Vacío, para que Python lo trate como paquete.
+│   ├── main.py         # Lógica de MainScreen.
+│   ├── prayer.py       # Lógica de PrayerScreen.
+│   ├── work.py         # Lógica de WorkScreen.
+│   ├── verses.py       # Lógica de VersesScreen.
+│   ├── purposes.py     # Lógica de PurposesScreen.
+│   └── config.py       # Lógica de ConfigScreen.
+└── kv_files/           # Carpeta para archivos Kivy Language
+    ├── main.kv         # Diseño de MainScreen.
+    ├── prayer.kv       # Diseño de PrayerScreen.
+    ├── work.kv         # Diseño de WorkScreen.
+    ├── verses.kv       # Diseño de VersesScreen.
+    ├── purposes.kv     # Diseño de PurposesScreen.
+    └── config.kv       # Diseño de ConfigScreen.
+
+

@@ -1,0 +1,121 @@
+# import VersesScreen screens.verses.VersesScreen
+<VersesScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: '10dp'
+        
+        # Etiqueta de Título
+        Label:
+            text: "Gestión de Versículos Bíblicos"
+            size_hint_y: 0.08
+            font_size: '20sp'
+
+        # Contenedor principal con dos paneles
+        GridLayout:
+            cols: 2
+            size_hint_y: 0.82
+            spacing: '10dp'
+            
+            # --- PANEL IZQUIERDO: Cargar Versículo ---
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: '5dp'
+                padding: '5dp'
+                
+                Label:
+                    text: "Cargar Nuevo Versículo"
+                    size_hint_y: 0.1
+                    
+                # Inputs para Libro, Capítulo y Versículo
+                GridLayout:
+                    cols: 3
+                    size_hint_y: 0.2
+                    spacing: '5dp'
+                    
+                    TextInput:
+                        id: book_input
+                        hint_text: "Libro (Ej: Juan)"
+                        multiline: False
+                    TextInput:
+                        id: chapter_input
+                        hint_text: "Capítulo"
+                        input_type: 'number'
+                        multiline: False
+                    TextInput:
+                        id: verse_num_input
+                        hint_text: "Versículo"
+                        input_type: 'number'
+                        multiline: False
+
+                # Input para el Texto
+                Label:
+                    text: "Texto del Versículo"
+                    size_hint_y: 0.08
+                TextInput:
+                    id: text_input
+                    hint_text: "Escribe el texto aquí..."
+                    multiline: True
+                    size_hint_y: 0.45
+
+                # Botón de Carga
+                Button:
+                    text: "Guardar Versículo"
+                    size_hint_y: 0.12
+                    on_release: root.add_verse(book_input.text, chapter_input.text, verse_num_input.text, text_input.text)
+                
+                Label:
+                    id: status_add
+                    text: ""
+                    size_hint_y: 0.05
+            
+            # --- PANEL DERECHO: Partida de Refuerzo ---
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: '5dp'
+                padding: '5dp'
+
+                Label:
+                    text: "Juego de Refuerzo Bíblico"
+                    size_hint_y: 0.1
+                
+                Label:
+                    text: root.verse_count
+                    size_hint_y: 0.08
+
+                # Área de texto del versículo a adivinar
+                Label:
+                    id: game_text
+                    text: "Presiona 'Iniciar Partida' para probar tu memoria."
+                    text_size: self.width, None
+                    halign: 'center'
+                    valign: 'top'
+                    padding: 10, 10
+                    size_hint_y: 0.35
+                
+                # Área para el estado del juego
+                Label:
+                    id: game_status_label
+                    text: root.game_status
+                    size_hint_y: 0.1
+                    color: 1, 0, 0, 1 # Rojo para el estado
+
+                # Área de opciones de botones/input
+                GridLayout:
+                    id: game_layout
+                    cols: 2
+                    spacing: '5dp'
+                    size_hint_y: 0.25
+                    
+                    Button:
+                        text: "Iniciar Partida"
+                        size_hint_x: 1
+                        on_release: root.iniciar_partida()
+        
+        # Botón de Navegación
+        Button:
+            text: "Volver al Principal"
+            size_hint_y: 0.1
+            on_release:
+                app.root.transition.direction = 'right'
+                app.root.current = 'main'

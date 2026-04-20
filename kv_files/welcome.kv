@@ -1,0 +1,25 @@
+#: import WipeTransition kivy.uix.screenmanager.WipeTransition
+
+<WelcomeScreen>:
+    # Una pantalla de bienvenida simple y atractiva
+    name: 'welcome'
+    canvas.before:
+        Color:
+            rgb: 0.1, 0.4, 0.6  # Un color de fondo azul oscuro
+        Rectangle:
+            size: self.size
+            pos: self.pos
+            
+    # Centrar un label de bienvenida
+    Label:
+        text: 'Bienvenido a [b]El Linaje[/b]'
+        font_size: '40sp'
+        font_name: app.app_config['FONT_NAME']
+        markup: True
+        color: 1, 1, 1, 1 # Blanco
+        
+    Label:
+        text: 'Cargando...'
+        font_size: '18sp'
+        pos_hint: {'center_x': 0.5, 'y': 0.1}
+        color: 0.7, 0.7, 0.7, 1 # Gris

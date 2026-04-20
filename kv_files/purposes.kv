@@ -1,0 +1,117 @@
+#:import utils kivy.utils
+
+<PurposeRow@ButtonBehavior+BoxLayout>:
+    # Este widget representa una fila de la tabla
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '50dp'
+    padding: '5dp'
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#2c3e50') if self.state == 'normal' else utils.get_color_from_hex('#34495e')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: 1, 1, 1, 0.1 # Línea divisoria
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y
+
+    # Datos de la fila (deben coincidir con tu lógica de Python)
+    Label:
+        text: root.objetivo
+        text_size: self.width, None
+        halign: 'center'
+    Label:
+        text: root.actualizacion
+        halign: 'center'
+    Label:
+        text: root.logros
+        halign: 'center'
+    Label:
+        text: root.ayuda_dios
+        halign: 'center'
+        italic: True
+
+<PurposesScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgb: 0.1, 0.1, 0.1 # Fondo oscuro
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        # --- ENCABEZADO DE PANTALLA ---
+        Label:
+            text: "¿Cuáles son tus metas?"
+            font_size: '24sp'
+            size_hint_y: None
+            height: '60dp'
+            bold: True
+
+        # --- BOTONES DE ACCIÓN ---
+        BoxLayout:
+            size_hint_y: None
+            height: '50dp'
+            padding: '5dp'
+            spacing: '10dp'
+            Button:
+                text: "+ Nuevo Propósito"
+                on_release: root.add_purpose() # Lógica en Python
+                background_color: utils.get_color_from_hex('#27ae60')
+            Button:
+                text: "✓ Propósito Alcanzado"
+                on_release: root.mark_as_done()
+                background_color: utils.get_color_from_hex('#2980b9')
+
+        # --- ENCABEZADO DE LA TABLA (Fijo) ---
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '40dp'
+            canvas.before:
+                Color:
+                    rgb: 0.2, 0.2, 0.2
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: "Objetivo"
+                bold: True
+            Label:
+                text: "Actualización"
+                bold: True
+            Label:
+                text: "Logros"
+                bold: True
+            Label:
+                text: "Dios me ayudó en"
+                bold: True
+
+        # --- ÁREA DE SCROLL (Registros) ---
+        ScrollView:
+            do_scroll_x: False
+            GridLayout:
+                id: purposes_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '2dp'
+                # Aquí se añadirán dinámicamente las filas desde Python
+
+        # --- LEYENDA INFERIOR ---
+        Label:
+            text: "Haz clic en un registro para editarlo"
+            size_hint_y: None
+            height: '30dp'
+            font_size: '12sp'
+            color: 0.6, 0.6, 0.6, 1
+        
+        Button:
+            text: "Volver al Principal"
+            size_hint_y: 0.1
+            on_release:
+                app.root.transition.direction = 'right'
+                app.root.current = 'main'
