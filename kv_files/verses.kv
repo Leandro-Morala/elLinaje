@@ -1,127 +1,209 @@
-# import VersesScreen screens.verses.VersesScreen
 <VersesScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: '10dp'
-        spacing: '10dp'
+        canvas.before:
+            Color:
+                rgba: 0.06, 0.06, 0.12, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
-        # Etiqueta de Título
-        Label:
-            text: "Gestión de Versículos Bíblicos"
-            size_hint_y: 0.08
-            font_size: '20sp'
+        # --- TITULO ---
+        BoxLayout:
+            size_hint_y: None
+            height: '50dp'
+            canvas.before:
+                Color:
+                    rgba: 0.08, 0.08, 0.18, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.7
+                Line:
+                    points: self.x, self.y, self.x + self.width, self.y
+                    width: 1.5
+            Label:
+                text: "Lectura Biblica"
+                font_size: '20sp'
+                bold: True
+                color: 0.95, 0.78, 0.1, 1
 
-        # Contenedor principal con dos paneles
-        GridLayout:
-            cols: 2
-            size_hint_y: 0.82
-            spacing: '10dp'
+        # --- FORMULARIO (scrollable) ---
+        ScrollView:
+            do_scroll_x: False
+            size_hint_y: 0.72
 
-            # --- PANEL IZQUIERDO: Cargar Versículo ---
             BoxLayout:
                 orientation: 'vertical'
-                spacing: '5dp'
-                padding: '5dp'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '14dp', '10dp'
+                spacing: '12dp'
 
-                Label:
-                    text: "Cargar Nuevo Versículo"
-                    size_hint_y: 0.1
+                # -- Libro --
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '52dp'
+                    spacing: '10dp'
 
-                # Inputs para Libro, Capítulo y Versículo
-                GridLayout:
-                    cols: 3
-                    size_hint_y: 0.2
-                    spacing: '5dp'
+                    Label:
+                        text: "Libro"
+                        size_hint_x: 0.22
+                        font_size: '15sp'
+                        bold: True
+                        color: 0.85, 0.85, 0.85, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
 
-                    TextInput:
-                        id: book_input
-                        hint_text: "Libro (Ej: Juan)"
-                        multiline: False
-                    TextInput:
-                        id: chapter_input
-                        hint_text: "Capítulo"
-                        input_type: 'number'
-                        multiline: False
-                    TextInput:
-                        id: verse_num_input
-                        hint_text: "Versículo"
-                        input_type: 'number'
-                        multiline: False
+                    Spinner:
+                        id: spinner_libro
+                        text: "Seleccionar libro..."
+                        values: root.libros_nombres
+                        size_hint_x: 0.78
+                        font_size: '14sp'
+                        background_normal: ''
+                        background_color: 0.15, 0.15, 0.3, 1
+                        color: 0.95, 0.95, 0.9, 1
+                        on_text: root.on_libro_seleccionado(self.text)
 
-                # Input para el Texto
-                Label:
-                    text: "Texto del Versículo"
-                    size_hint_y: 0.08
+                # -- Capitulo --
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '52dp'
+                    spacing: '10dp'
+
+                    Label:
+                        text: "Capitulo"
+                        size_hint_x: 0.22
+                        font_size: '15sp'
+                        bold: True
+                        color: 0.85, 0.85, 0.85, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+
+                    Spinner:
+                        id: spinner_capitulo
+                        text: "Capitulo..."
+                        values: root.capitulos_lista
+                        size_hint_x: 0.78
+                        font_size: '14sp'
+                        disabled: not root.libro_ok
+                        opacity: 0.4 if self.disabled else 1
+                        background_normal: ''
+                        background_color: 0.15, 0.15, 0.3, 1
+                        color: 0.95, 0.95, 0.9, 1
+                        on_text: root.on_capitulo_seleccionado(self.text)
+
+                # -- Versiculo --
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '52dp'
+                    spacing: '10dp'
+
+                    Label:
+                        text: "Versiculo"
+                        size_hint_x: 0.22
+                        font_size: '15sp'
+                        bold: True
+                        color: 0.85, 0.85, 0.85, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+
+                    Spinner:
+                        id: spinner_versiculo
+                        text: "Versiculo..."
+                        values: root.versiculos_lista
+                        size_hint_x: 0.78
+                        font_size: '14sp'
+                        disabled: not root.capitulo_ok
+                        opacity: 0.4 if self.disabled else 1
+                        background_normal: ''
+                        background_color: 0.15, 0.15, 0.3, 1
+                        color: 0.95, 0.95, 0.9, 1
+                        on_text: root.on_versiculo_seleccionado(self.text)
+
+                # -- Texto del versiculo --
                 TextInput:
                     id: text_input
-                    hint_text: "Escribe el texto aquí..."
+                    hint_text: "Escribe el versiculo de memoria..."
+                    disabled: not root.versiculo_ok
+                    opacity: 0.4 if self.disabled else 1
                     multiline: True
-                    size_hint_y: 0.45
+                    size_hint_y: None
+                    height: '130dp'
+                    background_color: 0.1, 0.1, 0.22, 1
+                    foreground_color: 0.95, 0.95, 0.88, 1
+                    hint_text_color: 0.4, 0.4, 0.55, 1
+                    cursor_color: 0.95, 0.78, 0.1, 1
+                    font_size: '16sp'
+                    padding: '10dp', '10dp'
 
-                # Botón de Carga
-                BotonEstilizado:
-                    texto: "Guardar Versículo"
-                    size_hint_y: 0.12
-                    mostrar_icono: False
-                    color_fondo: 0.1, 0.6, 0.2, 1
-                    on_release: root.add_verse(book_input.text, chapter_input.text, verse_num_input.text, text_input.text)
-
+                # -- Estado --
                 Label:
-                    id: status_add
-                    text: ""
-                    size_hint_y: 0.05
-
-            # --- PANEL DERECHO: Partida de Refuerzo ---
-            BoxLayout:
-                orientation: 'vertical'
-                spacing: '5dp'
-                padding: '5dp'
-
-                Label:
-                    text: "Juego de Refuerzo Bíblico"
-                    size_hint_y: 0.1
-
-                Label:
-                    text: root.verse_count
-                    size_hint_y: 0.08
-
-                # Área de texto del versículo a adivinar
-                Label:
-                    id: game_text
-                    text: "Presiona 'Iniciar Partida' para probar tu memoria."
-                    text_size: self.width, None
+                    text: root.status_text
+                    size_hint_y: None
+                    height: '28dp'
+                    font_size: '13sp'
                     halign: 'center'
-                    valign: 'top'
-                    padding: 10, 10
-                    size_hint_y: 0.35
+                    text_size: self.size
+                    valign: 'middle'
+                    color: 0.95, 0.78, 0.1, 1
 
-                # Área para el estado del juego
-                Label:
-                    id: game_status_label
-                    text: root.game_status
-                    size_hint_y: 0.1
-                    color: 1, 0, 0, 1
+                # -- Boton guardar --
+                BotonEstilizado:
+                    texto: "Guardar Versiculo"
+                    mostrar_icono: False
+                    size_hint_y: None
+                    height: '56dp'
+                    color_fondo: (0.2, 0.55, 0.25, 1) if root.versiculo_ok else (0.18, 0.18, 0.18, 0.6)
+                    on_release: root.guardar_versiculo()
 
-                # Área de opciones de botones/input
-                GridLayout:
-                    id: game_layout
-                    cols: 2
-                    spacing: '5dp'
-                    size_hint_y: 0.25
+        # --- AREA INFERIOR ---
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.28
+            padding: '10dp', '6dp'
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: 0.07, 0.07, 0.14, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.25
+                Line:
+                    points: self.x, self.top, self.x + self.width, self.top
+                    width: 1
 
-                    BotonEstilizado:
-                        texto: "Iniciar Partida"
-                        size_hint_x: 1
-                        mostrar_icono: False
-                        color_fondo: 0.95, 0.85, 0.4, 1
-                        on_release: root.iniciar_partida()
+            Label:
+                text: root.verse_count
+                size_hint_y: None
+                height: '26dp'
+                font_size: '14sp'
+                bold: True
+                color: 0.7, 0.7, 0.82, 1
+                halign: 'center'
+                text_size: self.size
+                valign: 'middle'
 
-        # Botón de Navegación
-        BotonEstilizado:
-            texto: "Volver al Principal"
-            size_hint_y: 0.1
-            mostrar_icono: False
-            color_fondo: 0.35, 0.35, 0.35, 1
-            on_release:
-                app.root.transition.direction = 'right'
-                app.root.current = 'main'
+            BotonEstilizado:
+                texto: "Iniciar Partida"
+                mostrar_icono: False
+                color_fondo: (0.95, 0.85, 0.4, 1)
+                on_release: root.ir_a_partida()
+
+            BotonEstilizado:
+                texto: "Volver al Principal"
+                mostrar_icono: False
+                color_fondo: (0.3, 0.3, 0.3, 0.6)
+                on_release:
+                    app.root.transition.direction = 'right'
+                    app.root.current = 'main'

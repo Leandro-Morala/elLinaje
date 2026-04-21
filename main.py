@@ -49,6 +49,7 @@ from screens.main import MainScreen
 from screens.prayer import PrayerScreen
 from screens.work import WorkScreen
 from screens.verses import VersesScreen
+from screens.verses_game import VersesGameScreen
 from screens.purposes import PurposesScreen
 from screens.config import ConfigScreen
 
@@ -153,7 +154,8 @@ class GameApp(App):
         sm.add_widget(MainScreen(name='main'))          # principal
         sm.add_widget(PrayerScreen(name='prayer' ))      # rezos
         sm.add_widget(WorkScreen(name='work' ))          # trabajos de iglesia
-        sm.add_widget(VersesScreen(name='verses' ))      # juego de versiculos
+        sm.add_widget(VersesScreen(name='verses' ))      # memorizar versiculos
+        sm.add_widget(VersesGameScreen(name='verses_game'))  # desafio biblico
         sm.add_widget(ManiScreen(name='mani' ))          # trabajo de la inglesia
         sm.add_widget(PurposesScreen(name='purposes' ))  # propositos propios
         sm.add_widget(ConfigScreen(name='config' ))      # configuracion y salidas
