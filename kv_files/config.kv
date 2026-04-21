@@ -3,7 +3,7 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgb: 0.05, 0.05, 0.05 # Fondo casi negro
+                rgb: 0.05, 0.05, 0.05
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -31,12 +31,13 @@
                     text_size: self.width, None
                     color: 0.7, 0.7, 0.7, 1
 
-                Button:
-                    text: "📝 Reingresar Datos de Perfil"
+                BotonEstilizado:
+                    texto: "Reingresar Datos de Perfil"
                     size_hint_y: None
                     height: '60dp'
+                    mostrar_icono: False
+                    color_fondo: 0.2, 0.4, 0.8, 1
                     on_release: root.go_to_profile_edit()
-                    background_color: 0.2, 0.4, 0.8, 1
 
                 Widget:
                     size_hint_y: None
@@ -49,41 +50,46 @@
                     text_size: self.width, None
                     color: 0.7, 0.7, 0.7, 1
 
-                Button:
-                    text: "📥 Exportar todo (.zip)"
+                BotonEstilizado:
+                    texto: "Exportar todo (.zip)"
                     size_hint_y: None
                     height: '60dp'
+                    mostrar_icono: False
+                    color_fondo: 0.1, 0.6, 0.3, 1
                     on_release: root.open_file_manager(mode='export')
-                    background_color: 0.1, 0.6, 0.3, 1
 
-                Button:
-                    text: "📤 Importar desde archivo"
+                BotonEstilizado:
+                    texto: "Importar desde archivo"
                     size_hint_y: None
                     height: '60dp'
+                    mostrar_icono: False
+                    color_fondo: 0.6, 0.4, 0.2, 1
                     on_release: root.open_file_manager(mode='import')
-                    background_color: 0.6, 0.4, 0.2, 1
 
                 # Información adicional
                 Label:
-                    text: "El Linaje v0.1\nLos datos se guardan de forma local."
+                    text: "El Linaje v0.2.8\nLos datos se guardan de forma local."
                     halign: 'center'
                     font_size: '12sp'
                     color: 0.4, 0.4, 0.4, 1
                     size_hint_y: None
                     height: '100dp'
 
-                Button:
-                    text: "Abrir buscar Versiculos"
+                BotonEstilizado:
+                    texto: "Buscar Versículos"
                     size_hint_y: None
                     height: '60dp'
+                    icono: "images/search_icon.png"
+                    color_fondo: 0.6, 0.4, 0.2, 1
                     on_release: root.openbible()
-                    background_color: 0.6, 0.4, 0.2, 1
+
         # Botón Volver
-        Button:
-            text: "Volver al Menú Principal"
+        BotonEstilizado:
+            texto: "Volver al Menú Principal"
             size_hint_y: None
             height: '50dp'
+            mostrar_icono: False
+            color_fondo: 0.5, 0.1, 0.1, 1
             on_release:
                 app.root.transition.direction = 'right'
                 root.manager.current = 'main'
-            background_color: 0.5, 0.1, 0.1, 1

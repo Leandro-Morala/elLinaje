@@ -67,25 +67,21 @@ class PrayerScreen(BaseScreen):
         """Al entrar, calculamos cuánto tiempo de oración queda comparando con la DB."""
         app = App.get_running_app()
         if hasattr(app, 'global_is_praying') and app.global_is_praying:
-            self.is_praying = True  # ahora establezco que esta orando
+            self.is_praying = True
             self.button_text = "Detener Oración"
-            # Calculamos cuántos segundos han pasado desde que se inició la oración real
             if app.global_timestamp_inicio:
                 self.timestamp_inicio_real = app.global_timestamp_inicio
                 self.inicio_sesion_texto = self.timestamp_inicio_real.strftime("%Y-%m-%d %H:%M:%S")
-                # Sincronizar el cronómetro visual
                 diff = int(time.time() - app.global_timestamp_inicio.timestamp())
                 self.sesion_actual_segundos = diff
                 self.timer_text = str(timedelta(seconds=self.sesion_actual_segundos))
-            
             if not self.prayer_event:
                 self.prayer_event = Clock.schedule_interval(self.update_current_session, 1)
         else:
-            # establezco que no esta orando ya que las varialbes globales asi lo demuestran
             self.is_praying = False
-            
+
         self.actualizar_cobertura_restante()
-        # Actualizamos el reloj de cobertura cada segundo
+        Clock.unschedule(self.actualizar_cobertura_restante)
         Clock.schedule_interval(self.actualizar_cobertura_restante, 1)
     
     def actualizar_registros(self):
@@ -140,26 +136,19 @@ class PrayerScreen(BaseScreen):
     def actualizar_cobertura_restante(self, *args):
         """
         Calcula la diferencia entre el 'final_oracion_timestamp' guardado y el ahora.
-        Esto resuelve el problema de cerrar y abrir la app.
         """
-        # actualizar tabla de registros
-        
-        fechaFinOracion = self.get_data('fecha_fin_oracion')
+        fechaFinOracion = self.user.get_tag(1, 'fecha_fin_oracion')
         if not fechaFinOracion:
             self.timer_total_text = "00:00:00"
             return
 
         try:
-            # fecha_fin_oracion debe guardarse como un timestamp (float) para mayor facilidad
             fin_timestamp = float(fechaFinOracion)
             ahora = time.time()
-            
             restante = fin_timestamp - ahora
-            
             if restante <= 0:
                 self.timer_total_text = "00:00:00"
             else:
-                # Formatear HH:MM:SS
                 self.timer_total_text = str(timedelta(seconds=int(restante)))
         except Exception as e:
             Logger.error(f"Prayer: Error calculando cobertura: {e}")
@@ -203,37 +192,35 @@ class PrayerScreen(BaseScreen):
         """Convierte el tiempo orado en 'cobertura' y lo suma a la fecha fin en la DB."""
         mult = self.get_multiplicador()
         segundos_ganados = self.sesion_actual_segundos * mult
-        
-        ultima_fin = self.get_data("fecha_fin_oracion")
-        ahora_unix = time.time()
-        
-        # Recuperar el valor del tiempo inicial formateado si lo necesitas para un log:
-        tiempo_inicial_str = self.timestamp_inicio_real.strftime("%Y-%m-%d %H:%M:%S")
-        Logger.info(f"Prayer: Sesión iniciada el {tiempo_inicial_str} ha terminado."+'*'*30)
 
-        # Lógica de acumulación
-        ultima_fin = float(ultima_fin) if ultima_fin else ahora_unix
+        tiempo_inicial_str = self.timestamp_inicio_real.strftime("%Y-%m-%d %H:%M:%S")
+        Logger.info(f"[Prayer] Sesión iniciada el {tiempo_inicial_str} ha terminado."+'*'*30)
+
+        # Leer directamente con get_tag para evitar doble conexión SQLite en Android
+        ultima_fin_raw = self.user.get_tag(1, "fecha_fin_oracion")
+        Logger.info(f"[Prayer] ultima_fin_raw leída={ultima_fin_raw!r}")
+        ahora_unix = time.time()
+
+        try:
+            ultima_fin = float(ultima_fin_raw) if ultima_fin_raw else ahora_unix
+        except (ValueError, TypeError):
+            ultima_fin = ahora_unix
+
         base_inicio = max(ahora_unix, ultima_fin)
-        
         nueva_fin = base_inicio + segundos_ganados
-        
+
         # Límite de 24 horas
-        max_futuro = ahora_unix + 86400 
+        max_futuro = ahora_unix + 86400
         if nueva_fin > max_futuro:
             nueva_fin = max_futuro
-            
-        # Guardar en base de datos
-        Logger.info(f"nuevo tiempo fecha_fin_oracion:{nueva_fin}" )
-        self.user.set_tag(1, "fecha_fin_oracion",int(nueva_fin) )
-        
-        # tiempo final de oracion: 
-        tiempo_final = nueva_fin
-        # tiempo ganado realmente sin aplicar ganancia.
-        tiempo_acumulado = int(self.timestamp_inicio_real.second) + self.sesion_actual_segundos
-        #tiempo_inicio <datetime>, tiempo_final<timedelta>, tiempo_acumulado<timedelta> 
-        self.Oraciones.insertar( tiempo_inicial_str , tiempo_final , tiempo_acumulado )
-        
-        Logger.info(f"Prayer: Ganados {segundos_ganados}s de cobertura (Mult: {mult})")
+
+        Logger.info(f"[Prayer] base={base_inicio:.0f} ganados={segundos_ganados:.0f}s nueva_fin={nueva_fin:.0f}")
+        self.user.set_tag(1, "fecha_fin_oracion", int(nueva_fin))
+
+        tiempo_acumulado = self.sesion_actual_segundos
+        self.Oraciones.insertar(tiempo_inicial_str, nueva_fin, tiempo_acumulado)
+
+        Logger.info(f"[Prayer] Ganados {segundos_ganados}s de cobertura (Mult: {mult})")
         self.actualizar_cobertura_restante()
 
 '''    

@@ -1,144 +1,245 @@
-#: import ClickableImage screens.main.ClickableImage 
+#: import ClickableImage screens.main.ClickableImage
 
-# Importar la nueva clase
-
-# esta es la pantalla principal. vertical 
 <MainScreen>:
     name: 'main'
-    BoxLayout:  # <-- Layout Principal VERTICAL que organiza el contenido
+    BoxLayout:
         orientation: 'vertical'
-            
-        # Sección de Perfil (Nombre, Foto, Nivel, Poder)
+
+        # --- CARTA DE JUGADOR ---
         BoxLayout:
-            size_hint_y: 0.3
-            orientation: 'horizontal'
-            # Foto de Perfil (usar Image)
+            size_hint_y: 0.38
+            orientation: 'vertical'
+            padding: '8dp'
+            spacing: '4dp'
+            canvas.before:
+                Color:
+                    rgba: 0.08, 0.08, 0.15, 1
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(10)]
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.5
+                Line:
+                    rounded_rectangle: self.x+2, self.y+2, self.width-4, self.height-4, dp(9)
+                    width: 1.2
+
+            # Fila: imagen + nombre
             BoxLayout:
-                size_hint_x: 0.2 # Ocupa el 30% del ancho
-                # Usamos un Button para envolver la Image. El Button es clickeable.
-                Button:
-                    background_normal: '' # Eliminar el fondo por defecto
-                    background_color: 0, 0, 0, 0 # Hacer el botón transparente
-                    on_release: app.root.current = 'player_data' # Redirigir al clic
+                orientation: 'horizontal'
+                size_hint_y: 0.5
+                spacing: '8dp'
 
-                    Image: # Colocamos la Image DENTRO del Button
-                        source: root.get_player_data_foto_perfil()
-                        # Las propiedades size y pos de Image son heredadas de su padre (Button)
-                        # No necesitas size_hint_y aquí.
-                        allow_stretch: True
-                        keep_ratio: True
-                        center: self.parent.center # Centra la imagen dentro del botón
-                        size: self.parent.size # Hace que la imagen ocupe el tamaño del botón
+                # Foto de perfil (cuadrada, clickeable, con marco dorado)
+                ClickableImage:
+                    source: root.get_player_data_foto_perfil()
+                    size_hint_x: None
+                    width: self.height
+                    allow_stretch: True
+                    keep_ratio: True
+                    on_release: app.root.current = 'player_data'
+                    canvas.before:
+                        Color:
+                            rgba: 0.95, 0.78, 0.1, 0.8
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(8)]
 
-        
-            # Sección de Perfil (Nombre, Nivel, Poder)
-            
+                # Nombre del jugador (enmarcado, resaltado)
+                BoxLayout:
+                    padding: '6dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.12, 0.12, 0.22, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(6)]
+                        Color:
+                            rgba: 0.95, 0.78, 0.1, 0.25
+                        Line:
+                            rounded_rectangle: self.x+1, self.y+1, self.width-2, self.height-2, dp(5)
+                    Label:
+                        id: player_name
+                        text: root.player_name
+                        font_size: '21sp'
+                        bold: True
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.size
+                        color: 1, 0.95, 0.7, 1
 
+            # Fila: nivel + estrellas
             BoxLayout:
-                orientation: 'vertical'
-                padding: '5dp'
-                Label:
-                    id:player_name
-                    text:root.player_name
-                    font_size: '18sp'
-                    size_hint_y: 0.3
-                
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: '8dp'
+                padding: '2dp', 0
+
                 Label:
                     id: nivel_label
                     text: root.nivel_label
-                
-                Label:
-                    id: user_level
-                    text: "Poder de Oración Restante"
-                
-                ProgressBar:
-                    id: power_bar
-                    max: root.power_max
-                    value: root.power_value
-                    
-                Label:
-                    text: root.power_text
-                    
-        # Botones de Navegación
+                    font_size: '17sp'
+                    bold: True
+                    size_hint_x: 0.35
+                    halign: 'left'
+                    text_size: self.size
+                    valign: 'middle'
+                    color: 0.85, 0.85, 0.85, 1
+
+                # 5 circulos: llenos segun nivel (cada 10 niveles = 1 circulo)
+                Widget:
+                    size_hint_x: 0.65
+                    canvas:
+                        # circulo 1
+                        Color:
+                            rgba: (0.95, 0.78, 0.1, 1) if root.nivel_valor >= 10 else (0.3, 0.3, 0.3, 1)
+                        Ellipse:
+                            pos: self.x + dp(4), self.center_y - dp(7)
+                            size: dp(14), dp(14)
+                        # circulo 2
+                        Color:
+                            rgba: (0.95, 0.78, 0.1, 1) if root.nivel_valor >= 20 else (0.3, 0.3, 0.3, 1)
+                        Ellipse:
+                            pos: self.x + dp(24), self.center_y - dp(7)
+                            size: dp(14), dp(14)
+                        # circulo 3
+                        Color:
+                            rgba: (0.95, 0.78, 0.1, 1) if root.nivel_valor >= 30 else (0.3, 0.3, 0.3, 1)
+                        Ellipse:
+                            pos: self.x + dp(44), self.center_y - dp(7)
+                            size: dp(14), dp(14)
+                        # circulo 4
+                        Color:
+                            rgba: (0.95, 0.78, 0.1, 1) if root.nivel_valor >= 40 else (0.3, 0.3, 0.3, 1)
+                        Ellipse:
+                            pos: self.x + dp(64), self.center_y - dp(7)
+                            size: dp(14), dp(14)
+                        # circulo 5
+                        Color:
+                            rgba: (0.95, 0.78, 0.1, 1) if root.nivel_valor >= 50 else (0.3, 0.3, 0.3, 1)
+                        Ellipse:
+                            pos: self.x + dp(84), self.center_y - dp(7)
+                            size: dp(14), dp(14)
+
+            # Fila: barra de poder
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 0.35
+                spacing: '2dp'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '14dp'
+                    Label:
+                        text: "Poder de Oracion"
+                        font_size: '14sp'
+                        bold: True
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                        color: 0.85, 0.85, 0.85, 1
+                    Label:
+                        text: root.power_text
+                        font_size: '15sp'
+                        bold: True
+                        halign: 'right'
+                        text_size: self.size
+                        valign: 'middle'
+                        color: 0.95, 0.78, 0.1, 1
+
+                Widget:
+                    size_hint_y: None
+                    height: '14dp'
+                    canvas:
+                        Color:
+                            rgba: 0.2, 0.2, 0.2, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.width, dp(14)
+                            radius: [dp(7)]
+                        Color:
+                            rgba: 0.95, 0.78, 0.1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.width * (root.power_value / root.power_max if root.power_max > 0 else 0), dp(14)
+                            radius: [dp(7)]
+
+        # --- SEPARADOR FECHA/HORA ---
+        Label:
+            text: root.fecha_hora_text
+            size_hint_y: None
+            height: '28dp'
+            font_size: '15sp'
+            bold: True
+            halign: 'center'
+            text_size: self.size
+            valign: 'middle'
+            color: 0.6, 0.6, 0.7, 1
+            canvas.before:
+                Color:
+                    rgba: 0.1, 0.1, 0.18, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        # --- BOTONES DE NAVEGACIÓN ---
         GridLayout:
-            size_hint_y: 0.6
+            size_hint_y: 0.55
             cols: 2
-            spacing: '10dp'
-            
-            #Button:
-            #    text: "Oración"
-            #    on_release: app.root.current = 'prayer'
-            # Botón tipo Celestial
+            spacing: '8dp'
+            padding: '6dp'
+
             BotonEstilizado:
                 texto: "Oración"
                 icono: "images/pray_icon.png"
-                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                color_fondo: (0.95, 0.85, 0.4, 1)
                 on_release: root.manager.current = 'prayer'
-            #Button:
-            #    text: "Versículos Bíblicos"
-            #    on_release: app.root.current = 'verses'
-            
+
             BotonEstilizado:
                 texto: "Lectura Bíblica"
                 icono: "images/pray_icon.png"
-                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                color_fondo: (0.95, 0.85, 0.4, 1)
                 on_release: root.manager.current = 'verses'
-            
+
             BotonEstilizado:
                 texto: "Colaboraciones"
                 icono: "images/work_icon.png"
-                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                color_fondo: (0.95, 0.85, 0.4, 1)
                 on_release: root.manager.current = 'work'
-            #Button:
-            #    text: "Tiempo en la Iglesia"
-            #    on_release: app.root.current = 'work'
-            
+
             BotonEstilizado:
                 texto: "Ofrendas"
                 icono: "images/ofrendas_icon.png"
-                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                color_fondo: (0.95, 0.85, 0.4, 1)
                 on_release: root.manager.current = 'mani'
-            
-            #Button:
-            #    text: "Ofrendas" # Esta acción aún no tiene pantalla definida, se podría modelar en un input
-            #    on_release: app.root.current = 'mani'
-            
+
             BotonEstilizado:
                 texto: "Metas"
                 icono: "images/metas_icon.png"
-                color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
+                color_fondo: (0.95, 0.85, 0.4, 1)
                 on_release: root.manager.current = 'purposes'
-            #Button:
-            #    text: "Propósitos Personales"
-            #    on_release: app.root.current = 'purposes'
-            
+
             GridLayout:
-                size_hint_y: 0.6
                 cols: 2
-                spacing: '10dp'            
+                spacing: '8dp'
 
                 BotonEstilizado:
-                    texto: "Configuraciones"
+                    texto: "" if self.width < dp(90) else "Config"
+                    mostrar_icono: True
                     icono: "images/config_icon.png"
-                    color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
-                    on_release: 
+                    color_fondo: (0.95, 0.85, 0.4, 1)
+                    on_release:
                         app.root.transition.direction = 'left'
                         root.manager.current = 'config'
-                       
-                #Button:
-                #    text: "Configuración"
-                #    on_release:
-                #        app.root.transition.direction = 'left'
-                #        app.root.current = 'config'
-                
+
                 BotonEstilizado:
-                    texto: "Salir"
+                    texto: "" if self.width < dp(90) else "Salir"
+                    mostrar_icono: True
                     icono: "images/salir_icon.png"
-                    color_fondo: (0.95, 0.85, 0.4, 1) # Dorado suave
-                    on_release: 
+                    color_fondo: (0.95, 0.85, 0.4, 1)
+                    on_release:
                         app.root.transition = WipeTransition(duration=0.5)
                         app.salir_del_juego()
-                
-                #Button:
-                #    text: "Salir"
-                #    on_release: app.salir_del_juego()

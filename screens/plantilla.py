@@ -28,6 +28,7 @@ class BotonEstilizado(ButtonBehavior, BoxLayout):
     color_fondo = ColorProperty((1, 1, 1, 1))
     radio_borde = ListProperty([dp(15)])
     mostrar_icono = BooleanProperty(True)
+    tamanio_texto = StringProperty('16sp')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

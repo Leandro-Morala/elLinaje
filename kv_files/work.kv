@@ -3,41 +3,38 @@
         orientation: 'vertical'
         padding: '10dp'
         spacing: '10dp'
-        
+
         Label:
             text: "Registrar Trabajo en la Iglesia"
             size_hint_y: 0.1
-        
+
         # --- AREA DE TABLA DE REGISTROS ---
         RecycleView:
             id: history_rv
-            size_hint_y: 0.35 # Ajustado para dar espacio a los campos de entrada
-            
-            data: root.history_data # <-- ESTO LO ENLAZAREMOS A UNA PROPERTY EN WORK.PY
-            
-            # 2. CLASE DE VISTA (La plantilla para dibujar cada ítem)
+            size_hint_y: 0.35
+
+            data: root.history_data
+
             viewclass: 'WorkHistoryItem'
-            
-            RecycleView: # El adaptador (view_adapter)
+
+            RecycleView:
                 id: rv_adapter
-                
-                # 3. LAYOUT (Cómo se organizan los ítems, generalmente una Box/GridLayout)
-                RecycleBoxLayout: # La plantilla del ítem
+
+                RecycleBoxLayout:
                     default_size: None, dp(50)
                     default_size_hint: 1, None
                     orientation: 'vertical'
                     size_hint_y: None
                     height: self.minimum_height
-                    # Importantísimo: Agregamos padding al layout para simular una tabla
                     padding: dp(2)
                     spacing: dp(2)
 
-        # --- CAMPOS DE ENTRADA (Igual que antes) ---
+        # --- CAMPOS DE ENTRADA ---
         BoxLayout:
             size_hint_y: 0.5
             orientation: 'vertical'
             spacing: '5dp'
-            
+
             Label:
                 text: "Desde (YYYY-MM-DD HH:MM)"
                 size_hint_y: None
@@ -45,8 +42,7 @@
             TextInput:
                 id: start_time_input
                 multiline: False
-                # text: datetime.now().strftime('%Y-%m-%d %H:%M')
-            
+
             Label:
                 text: "Hasta (YYYY-MM-DD HH:MM)"
                 size_hint_y: None
@@ -54,8 +50,7 @@
             TextInput:
                 id: end_time_input
                 multiline: False
-                # text: datetime.now().strftime('%Y-%m-%d %H:%M')
-                
+
             Label:
                 text: "Observación"
                 size_hint_y: None
@@ -64,14 +59,18 @@
                 id: obs_input
                 multiline: False
 
-            Button:
-                text: "Agregar Registro Manual"
+            BotonEstilizado:
+                texto: "Agregar Registro Manual"
                 size_hint_y: 0.25
+                mostrar_icono: False
+                color_fondo: 0.1, 0.6, 0.2, 1
                 on_release: root.add_manual_registro(start_time_input.text, end_time_input.text, obs_input.text)
-                
-        Button:
-            text: "Volver al Principal"
+
+        BotonEstilizado:
+            texto: "Volver al Principal"
             size_hint_y: 0.1
+            mostrar_icono: False
+            color_fondo: 0.35, 0.35, 0.35, 1
             on_release:
                 app.root.transition.direction = 'right'
                 app.root.current = 'main'
@@ -83,21 +82,20 @@
     spacing: dp(5)
     size_hint_y: None
     height: dp(50)
-    
-    # Las propiedades aquí se enlazarán a la data del RecycleView
+
     start_time: ''
     end_time: ''
     observation: ''
-    item_index: -1 # Necesario para identificar la fila
-    
+    item_index: -1
+
     # Columna 1: Fechas
     Label:
         text: root.start_time + ' -> ' + root.end_time
         size_hint_x: 0.5
-        text_size: self.size # Permite ajuste de texto
+        text_size: self.size
         valign: 'middle'
         halign: 'left'
-        
+
     # Columna 2: Observación
     Label:
         text: root.observation
@@ -111,17 +109,15 @@
         orientation: 'horizontal'
         size_hint_x: 0.2
         spacing: dp(2)
-        
+
         Button:
             text: 'Edit'
             font_size: dp(10)
             size_hint_x: 0.5
-            # Al hacer clic, pasamos el índice de la fila al método de edición
             on_release: app.root.get_screen('work').edit_item(root.item_index)
 
         Button:
             text: 'X'
             font_size: dp(10)
             size_hint_x: 0.5
-            # Al hacer clic, pasamos el índice de la fila al método de eliminación
             on_release: app.root.get_screen('work').remove_item(root.item_index)

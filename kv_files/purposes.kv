@@ -1,7 +1,6 @@
 #:import utils kivy.utils
 
 <PurposeRow@ButtonBehavior+BoxLayout>:
-    # Este widget representa una fila de la tabla
     orientation: 'horizontal'
     size_hint_y: None
     height: '50dp'
@@ -13,11 +12,10 @@
             size: self.size
             pos: self.pos
         Color:
-            rgba: 1, 1, 1, 0.1 # Línea divisoria
+            rgba: 1, 1, 1, 0.1
         Line:
             points: self.x, self.y, self.x + self.width, self.y
 
-    # Datos de la fila (deben coincidir con tu lógica de Python)
     Label:
         text: root.objetivo
         text_size: self.width, None
@@ -38,7 +36,7 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgb: 0.1, 0.1, 0.1 # Fondo oscuro
+                rgb: 0.1, 0.1, 0.1
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -57,14 +55,18 @@
             height: '50dp'
             padding: '5dp'
             spacing: '10dp'
-            Button:
-                text: "+ Nuevo Propósito"
-                on_release: root.add_purpose() # Lógica en Python
-                background_color: utils.get_color_from_hex('#27ae60')
-            Button:
-                text: "✓ Propósito Alcanzado"
+
+            BotonEstilizado:
+                texto: "+ Nuevo Propósito"
+                icono: "images/metas_icon.png"
+                color_fondo: 0.15, 0.68, 0.38, 1
+                on_release: root.add_purpose()
+
+            BotonEstilizado:
+                texto: "Propósito Alcanzado"
+                mostrar_icono: False
+                color_fondo: 0.16, 0.50, 0.73, 1
                 on_release: root.mark_as_done()
-                background_color: utils.get_color_from_hex('#2980b9')
 
         # --- ENCABEZADO DE LA TABLA (Fijo) ---
         BoxLayout:
@@ -99,7 +101,6 @@
                 size_hint_y: None
                 height: self.minimum_height
                 spacing: '2dp'
-                # Aquí se añadirán dinámicamente las filas desde Python
 
         # --- LEYENDA INFERIOR ---
         Label:
@@ -108,10 +109,12 @@
             height: '30dp'
             font_size: '12sp'
             color: 0.6, 0.6, 0.6, 1
-        
-        Button:
-            text: "Volver al Principal"
+
+        BotonEstilizado:
+            texto: "Volver al Principal"
             size_hint_y: 0.1
+            mostrar_icono: False
+            color_fondo: 0.35, 0.35, 0.35, 1
             on_release:
                 app.root.transition.direction = 'right'
                 app.root.current = 'main'

@@ -1,6 +1,6 @@
 <FaithDataScreen>:
     name: 'faith_data'
-    
+
     BoxLayout:
         orientation: 'vertical'
         padding: '20dp'
@@ -12,14 +12,14 @@
             size_hint_y: None
             height: '50dp'
             markup: True
-        
+
         Label:
             text: ('Esta información no será almacenada y nunca informada a nadie. Es un compromiso entre Dios y vos.')
             halign: 'center'
             text_size: self.width, None
             size_hint_y: None
             height: self.texture_size[1]
-            color: 0.9, 0.3, 0.3, 1 # Rojo Suave
+            color: 0.9, 0.3, 0.3, 1
 
         # Pregunta 1: Aceptaste a Cristo
         BoxLayout:
@@ -31,8 +31,6 @@
                 id: accepted_christ
                 size_hint_x: None
                 width: '40dp'
-                # el grupo proporiciona el cambio de check a opcion multiple.
-                #group: 'faith01' # Grupo opcional si solo quieres una selección
 
         # Pregunta 2: Bautismo
         BoxLayout:
@@ -44,15 +42,15 @@
                 id: baptized
                 size_hint_x: None
                 width: '40dp'
-                #group: 'faith02' # Grupo opcional si solo quieres una selección
 
         # Espaciador
         Widget:
 
         # Botón de Finalización
-        Button:
-            text: 'Comenzar mi Jornada'
+        BotonEstilizado:
+            texto: 'Comenzar mi Jornada'
             size_hint_y: None
             height: '60dp'
+            mostrar_icono: False
+            color_fondo: 0.1, 0.4, 0.6, 1
             on_release: root.complete_registration()
-            background_color: 0.1, 0.4, 0.6, 1 # Azul
