@@ -30,11 +30,11 @@ class bookModel(db):
 
     def get_all_names(self):
         '''
-            devolver el nombre libros, book_id 
+            devolver el nombre libros, book_id
         '''
-        sqll="SELECT name, book_reference_id , testament_reference_id FROM book ORDER BY book_reference_id ASC "; 
+        sqll="SELECT name, book_reference_id , testament_reference_id FROM book ORDER BY book_reference_id ASC ";
         cursor = self.__run_executa_sql__(sqll,'' ,'SELECT')
-        todos = cursor.fetchall()
+        todos = cursor.fetchall() if cursor else []
         return todos
 
     def _un_libro_(self,idLibro):

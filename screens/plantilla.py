@@ -65,8 +65,9 @@ class BuscadorBiblico(ModalView):
         
         lbl_bib = Label(text="Biblia:", color=(0.3, 0.2, 0.1, 1), size_hint_x=None, width=dp(60), bold=True)
         
-        # Obtenemos nombres de biblias para el Spinner
-        biblias_disponibles = [n.path.split('/')[-1] for n in self.libreriaPrincipal['contenido']]
+        # Obtenemos nombres de biblias para el Spinner (excluir archivos auxiliares)
+        biblias_disponibles = [n.path.split('/')[-1] for n in self.libreriaPrincipal['contenido']
+                               if 'alternative' not in n.path.lower()]
         self.spinner_biblia = Spinner(
             text=biblias_disponibles[0] if biblias_disponibles else "RVR1960",
             values=biblias_disponibles,

@@ -15,18 +15,21 @@ class VersesScreen(BaseScreen):
     capitulo_ok  = BooleanProperty(False)
     versiculo_ok = BooleanProperty(False)
 
+    editing_mode = BooleanProperty(False)  # True cuando se edita un versiculo existente
+
     verse_count = StringProperty("Versiculos guardados: 0")
     status_text = StringProperty("")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.capitulos_model = App.get_running_app().getModel('CapitulosModel')
-        self._rvr1960    = None
-        self._libros_map = {}
-        self._libro_id   = None
+        self._rvr1960      = None
+        self._libros_map   = {}
+        self._libro_id     = None
         self._libro_nombre = None
         self._capitulo_num = None
         self._versiculo_num = None
+        self._editing_id   = None
         self._cargar_biblia()
 
     # ------------------------------------------------------------------
@@ -42,9 +45,11 @@ class VersesScreen(BaseScreen):
                 return
         if biblioteca['contenido']:
             self._rvr1960 = biblioteca['contenido'][0]
-            Logger.warning("[Verses] RVR1960 no encontrada, usando primera biblia")
 
     def on_enter(self, *args):
+        eliminados = self.capitulos_model.procesar_envejecimiento(1)
+        if eliminados > 0:
+            self._penalizar_nivel(eliminados)
         if not self.libros_nombres:
             self._cargar_libros()
         self._reset_form()
@@ -57,21 +62,22 @@ class VersesScreen(BaseScreen):
             libros = self._rvr1960.getAllNameBook()
             self._libros_map = {row[0]: row[1] for row in libros}
             self.libros_nombres = [row[0] for row in libros]
-            Logger.info(f"[Verses] {len(self.libros_nombres)} libros cargados")
         except Exception as e:
             Logger.error(f"[Verses] _cargar_libros: {e}")
 
     def _reset_form(self):
-        self.libro_ok    = False
-        self.capitulo_ok = False
+        self.libro_ok     = False
+        self.capitulo_ok  = False
         self.versiculo_ok = False
+        self.editing_mode = False
         self.capitulos_lista  = []
         self.versiculos_lista = []
-        self.status_text = ""
+        self.status_text   = ""
         self._libro_id     = None
         self._libro_nombre = None
         self._capitulo_num = None
         self._versiculo_num = None
+        self._editing_id   = None
         if 'spinner_libro' in self.ids:
             self.ids.spinner_libro.text     = "Seleccionar libro..."
             self.ids.spinner_capitulo.text  = "Capitulo..."
@@ -85,6 +91,8 @@ class VersesScreen(BaseScreen):
     def on_libro_seleccionado(self, texto):
         if not texto or texto not in self._libros_map:
             return
+        self.editing_mode = False
+        self._editing_id  = None
         book_id = self._libros_map[texto]
         self._libro_id     = book_id
         self._libro_nombre = texto
@@ -94,8 +102,8 @@ class VersesScreen(BaseScreen):
         except Exception as e:
             Logger.error(f"[Verses] countCapitulos: {e}")
             self.capitulos_lista = []
-        self.libro_ok    = True
-        self.capitulo_ok = False
+        self.libro_ok     = True
+        self.capitulo_ok  = False
         self.versiculo_ok = False
         self.versiculos_lista = []
         if 'spinner_capitulo' in self.ids:
@@ -107,6 +115,8 @@ class VersesScreen(BaseScreen):
     def on_capitulo_seleccionado(self, texto):
         if not texto or not texto.isdigit():
             return
+        self.editing_mode = False
+        self._editing_id  = None
         cap = int(texto)
         self._capitulo_num = cap
         try:
@@ -126,20 +136,34 @@ class VersesScreen(BaseScreen):
         if not texto or not texto.isdigit():
             return
         self._versiculo_num = int(texto)
-        self.versiculo_ok = True
+        self.versiculo_ok   = True
+        # Si ya existe, cargar texto para edicion
+        existente = self.capitulos_model.get_existing(
+            1, self._libro_id, self._capitulo_num, self._versiculo_num)
+        if existente:
+            self.ids.text_input.text = existente['texto']
+            self._editing_id  = existente['id']
+            self.editing_mode = True
+            self.status_text  = "Versiculo ya guardado — podes editar el texto."
+        else:
+            self.editing_mode = False
+            self._editing_id  = None
+            self.status_text  = ""
 
     # ------------------------------------------------------------------
-    # Guardar
+    # Guardar / Actualizar
     # ------------------------------------------------------------------
 
     def guardar_versiculo(self):
+        if self.editing_mode:
+            self._actualizar_versiculo()
+            return
+
         texto = self.ids.text_input.text.strip()
         if not texto:
             self.status_text = "Escribe el texto del versiculo primero."
             return
-        if self.capitulos_model.existe(1, self._libro_id, self._capitulo_num, self._versiculo_num):
-            self.status_text = "Este versiculo ya esta guardado."
-            return
+
         result = self.capitulos_model.insertar(
             id_usuario=1,
             book_id=self._libro_id,
@@ -150,28 +174,52 @@ class VersesScreen(BaseScreen):
         )
         if result:
             referencia = f"{self._libro_nombre} {self._capitulo_num}:{self._versiculo_num}"
-            self.capitulos_model.renovar_vida(1)
             subio = self._verificar_nivel()
-            if subio:
-                self.status_text = f"Guardado: {referencia}  |  Subiste de nivel!"
-            else:
-                self.status_text = f"Guardado: {referencia}"
+            self.status_text = (f"Guardado: {referencia}  |  Subiste de nivel!"
+                                if subio else f"Guardado: {referencia}")
             self._reset_form()
             self._update_verse_count()
         else:
-            self.status_text = "Error al guardar. Intenta de nuevo."
+            self.status_text = "Error al guardar."
+
+    def _actualizar_versiculo(self):
+        texto = self.ids.text_input.text.strip()
+        if not texto:
+            self.status_text = "El texto no puede estar vacio."
+            return
+        result = self.capitulos_model.actualizar(self._editing_id, texto=texto)
+        if result:
+            referencia = f"{self._libro_nombre} {self._capitulo_num}:{self._versiculo_num}"
+            self.status_text = f"Actualizado: {referencia}"
+            self._reset_form()
+            self._update_verse_count()
+        else:
+            self.status_text = "Error al actualizar."
+
+    def cancelar_edicion(self):
+        self._reset_form()
+
+    # ------------------------------------------------------------------
+    # Nivel y vida
+    # ------------------------------------------------------------------
 
     def _verificar_nivel(self):
-        """Sube nivel del usuario cada 10 versiculos. Devuelve True si subio."""
+        """Sube nivel cada 10 versiculos. Devuelve True si subio."""
         registros = self.capitulos_model.get_by_usuario(1)
         total = len(registros) if registros else 0
-        nivel_por_versiculos = total // 10
+        nivel_nuevo = total // 10
         nivel_actual = int(self.user.get_tag(1, 'nivel') or 0)
-        if nivel_por_versiculos > nivel_actual:
-            self.user.set_tag(1, 'nivel', nivel_por_versiculos)
-            Logger.info(f"[Verses] nivel subio a {nivel_por_versiculos}")
+        if nivel_nuevo > nivel_actual:
+            self.user.set_tag(1, 'nivel', nivel_nuevo)
             return True
         return False
+
+    def _penalizar_nivel(self, cantidad):
+        """Descuenta del nivel del usuario por versiculos expirados."""
+        nivel_actual = int(self.user.get_tag(1, 'nivel') or 0)
+        nuevo_nivel  = max(0, nivel_actual - cantidad)
+        self.user.set_tag(1, 'nivel', nuevo_nivel)
+        Logger.info(f"[Verses] nivel {nivel_actual} -> {nuevo_nivel} por {cantidad} expirados")
 
     def _update_verse_count(self):
         registros = self.capitulos_model.get_by_usuario(1)

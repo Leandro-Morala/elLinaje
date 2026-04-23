@@ -1,114 +1,13 @@
 <ManiScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: '10dp'
-        spacing: '10dp'
-
+        canvas.before:
+            Color:
+                rgba: 0.06, 0.06, 0.12, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
         Label:
-            text: "Registrar Donaciones a la Iglesia"
-            size_hint_y: 0.1
-
-        # --- AREA DE TABLA DE REGISTROS ---
-        RecycleView:
-            id: history_mv
-            size_hint_y: 0.35
-
-            data: root.history_mn_data
-
-            viewclass: 'WorkHistoryItem'
-
-            RecycleView:
-
-                RecycleBoxLayout:
-                    default_size: None, dp(50)
-                    default_size_hint: 1, None
-                    orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    padding: dp(2)
-                    spacing: dp(2)
-
-        # --- CAMPOS DE ENTRADA ---
-        BoxLayout:
-            size_hint_y: 0.5
-            orientation: 'vertical'
-            spacing: '5dp'
-
-            Label:
-                text: "FECHA (YYYY-MM-DD HH:MM)"
-                size_hint_y: None
-                height: '30dp'
-            TextInput:
-                id: end_time_input
-                multiline: False
-
-            Label:
-                text: "monto"
-                size_hint_y: None
-                height: '30dp'
-            TextInput:
-                id: obs_input
-                multiline: False
-
-            BotonEstilizado:
-                texto: "Agregar Registro Manual"
-                size_hint_y: 0.25
-                mostrar_icono: False
-                color_fondo: 0.1, 0.6, 0.2, 1
-                on_release: root.add_manual_registro(start_time_input.text, end_time_input.text, obs_input.text)
-
-        BotonEstilizado:
-            texto: "Volver al Principal"
-            size_hint_y: 0.1
-            mostrar_icono: False
-            color_fondo: 0.35, 0.35, 0.35, 1
-            on_release:
-                app.root.transition.direction = 'left'
-                app.root.current = 'main'
-
-# --- PLANTILLA PARA CADA FILA DE LA TABLA ---
-<WorkHistoryItem@BoxLayout>:
-    orientation: 'horizontal'
-    padding: dp(5)
-    spacing: dp(5)
-    size_hint_y: None
-    height: dp(50)
-
-    start_time: ''
-    end_time: ''
-    observation: ''
-    item_index: -1
-
-    # Columna 1: Fechas
-    Label:
-        text: root.start_time + ' -> ' + root.end_time
-        size_hint_x: 0.5
-        text_size: self.size
-        valign: 'middle'
-        halign: 'left'
-
-    # Columna 2: Observación
-    Label:
-        text: root.observation
-        size_hint_x: 0.3
-        text_size: self.size
-        valign: 'middle'
-        halign: 'left'
-
-    # Columna 3: Botones de Acción
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_x: 0.2
-        spacing: dp(2)
-
-        Button:
-            text: 'Edit'
-            font_size: dp(10)
-            size_hint_x: 0.5
-            on_release: app.root.get_screen('work').edit_item(root.item_index)
-
-        Button:
-            text: 'X'
-            font_size: dp(10)
-            size_hint_x: 0.5
-            on_release: app.root.get_screen('work').remove_item(root.item_index)
+            text: "Redirigiendo..."
+            color: 0.95, 0.78, 0.1, 1
+            font_size: '16sp'

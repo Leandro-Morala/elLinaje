@@ -1,0 +1,280 @@
+# ─────────────────────────────────────────────
+# Pagina 1: Lista de estudios
+# ─────────────────────────────────────────────
+<EstudioScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: 0.06, 0.06, 0.12, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        # --- TITULO ---
+        BoxLayout:
+            size_hint_y: None
+            height: '50dp'
+            canvas.before:
+                Color:
+                    rgba: 0.08, 0.08, 0.18, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.7
+                Line:
+                    points: self.x, self.y, self.x + self.width, self.y
+                    width: 1.5
+            Label:
+                text: "Estudio Biblico"
+                font_size: '20sp'
+                bold: True
+                color: 0.95, 0.78, 0.1, 1
+
+        # --- BOTON NUEVO ---
+        BoxLayout:
+            size_hint_y: None
+            height: '52dp'
+            padding: '10dp', '6dp'
+            canvas.before:
+                Color:
+                    rgba: 0.07, 0.07, 0.15, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            BotonEstilizado:
+                texto: "+ Nuevo Estudio"
+                mostrar_icono: False
+                color_fondo: (0.18, 0.45, 0.78, 1)
+                on_release: root.nuevo_estudio()
+
+        # --- LISTA ---
+        ScrollView:
+            do_scroll_x: False
+            BoxLayout:
+                id: estudios_list
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '10dp', '8dp'
+                spacing: '6dp'
+
+        # --- VOLVER ---
+        BotonEstilizado:
+            texto: "Volver al Principal"
+            size_hint_y: None
+            height: '52dp'
+            mostrar_icono: False
+            color_fondo: (0.3, 0.3, 0.3, 0.6)
+            on_release:
+                app.root.transition.direction = 'right'
+                app.root.current = 'main'
+
+
+# ─────────────────────────────────────────────
+# Pagina 2: Editor de estudio
+# ─────────────────────────────────────────────
+#: import DivisorArrastrable screens.estudio
+<EstudioDetalleScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: 0.06, 0.06, 0.12, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        # --- TITULO BARRA ---
+        BoxLayout:
+            size_hint_y: None
+            height: '50dp'
+            canvas.before:
+                Color:
+                    rgba: 0.08, 0.08, 0.18, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.7
+                Line:
+                    points: self.x, self.y, self.x + self.width, self.y
+                    width: 1.5
+            Label:
+                text: "Estudio Biblico"
+                font_size: '20sp'
+                bold: True
+                color: 0.95, 0.78, 0.1, 1
+
+        # --- TITULO DEL ESTUDIO ---
+        TextInput:
+            id: ti_titulo
+            hint_text: "Titulo del estudio..."
+            multiline: False
+            size_hint_y: None
+            height: '44dp'
+            font_size: '15sp'
+            bold: True
+            background_color: 0.10, 0.10, 0.22, 1
+            foreground_color: 0.95, 0.92, 0.75, 1
+            hint_text_color: 0.35, 0.35, 0.5, 1
+            cursor_color: 0.95, 0.78, 0.1, 1
+            padding: dp(12), dp(11)
+
+        # ─── SECCION VERSICULOS (40% altura) ───
+        BoxLayout:
+            id: versos_seccion
+            orientation: 'vertical'
+            size_hint_y: 0.40
+
+            # Cabecera versiculos
+            BoxLayout:
+                size_hint_y: None
+                height: '36dp'
+                padding: '8dp', '4dp'
+                spacing: '6dp'
+                canvas.before:
+                    Color:
+                        rgba: 0.08, 0.08, 0.20, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Label:
+                    text: "Versiculos"
+                    font_size: '13sp'
+                    bold: True
+                    color: 0.75, 0.75, 0.88, 1
+                    size_hint_x: 0.55
+                    halign: 'left'
+                    text_size: self.size
+                    valign: 'middle'
+                Button:
+                    text: "+ Agregar"
+                    size_hint_x: 0.28
+                    background_normal: ''
+                    background_color: 0.18, 0.42, 0.28, 1
+                    font_size: '12sp'
+                    bold: True
+                    on_release: root.abrir_buscador()
+                Button:
+                    text: "Leer"
+                    size_hint_x: 0.17
+                    background_normal: ''
+                    background_color: 0.22, 0.38, 0.65, 1
+                    font_size: '12sp'
+                    on_release: root.leer_en_rollo()
+
+            # Lista de versiculos
+            ScrollView:
+                do_scroll_x: False
+                canvas.before:
+                    Color:
+                        rgba: 0.07, 0.07, 0.15, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                BoxLayout:
+                    id: versos_list
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: '6dp', '4dp'
+                    spacing: '3dp'
+
+        # ─── DIVISOR ARRASTRABLE ───
+        DivisorArrastrable:
+            id: divisor
+            canvas:
+                Color:
+                    rgba: 0.10, 0.10, 0.22, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.65
+                Line:
+                    points: self.center_x - dp(22), self.center_y + dp(3), self.center_x + dp(22), self.center_y + dp(3)
+                    width: 1.5
+                Line:
+                    points: self.center_x - dp(22), self.center_y, self.center_x + dp(22), self.center_y
+                    width: 1.5
+                Line:
+                    points: self.center_x - dp(22), self.center_y - dp(3), self.center_x + dp(22), self.center_y - dp(3)
+                    width: 1.5
+
+        # ─── SECCION NOTAS (resto del espacio) ───
+        BoxLayout:
+            id: notas_seccion
+            orientation: 'vertical'
+            size_hint_y: 0.45
+
+            # Cabecera notas
+            BoxLayout:
+                size_hint_y: None
+                height: '28dp'
+                canvas.before:
+                    Color:
+                        rgba: 0.08, 0.08, 0.18, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                    Color:
+                        rgba: 0.4, 0.75, 0.5, 0.4
+                    Line:
+                        points: self.x, self.y, self.x + self.width, self.y
+                        width: 1
+                Label:
+                    text: "Notas de Estudio"
+                    font_size: '13sp'
+                    bold: True
+                    color: 0.5, 0.85, 0.6, 1
+
+            # Area de notas blob
+            TextInput:
+                id: ti_notas
+                multiline: True
+                font_size: '14sp'
+                background_color: 0.07, 0.08, 0.16, 1
+                foreground_color: 0.88, 0.92, 0.85, 1
+                hint_text_color: 0.3, 0.4, 0.35, 1
+                hint_text: "Escribe tus notas, reflexiones, analisis..."
+                cursor_color: 0.5, 0.9, 0.6, 1
+                padding: dp(10), dp(8)
+
+        # --- BARRA DE ACCIONES ---
+        BoxLayout:
+            size_hint_y: None
+            height: '52dp'
+            spacing: '6dp'
+            padding: '8dp', '6dp'
+            canvas.before:
+                Color:
+                    rgba: 0.07, 0.07, 0.15, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            Button:
+                text: "Guardar"
+                background_normal: ''
+                background_color: 0.18, 0.45, 0.78, 1
+                font_size: '14sp'
+                bold: True
+                on_release: root.guardar()
+
+            Label:
+                text: root.status_text
+                size_hint_x: 0.3
+                font_size: '11sp'
+                color: 0.4, 0.85, 0.5, 1
+                halign: 'center'
+                text_size: self.size
+                valign: 'middle'
+
+            Button:
+                text: "< Volver"
+                background_normal: ''
+                background_color: 0.25, 0.25, 0.25, 0.8
+                font_size: '13sp'
+                on_release: root.volver()

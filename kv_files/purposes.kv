@@ -1,120 +1,72 @@
-#:import utils kivy.utils
-
-<PurposeRow@ButtonBehavior+BoxLayout>:
-    orientation: 'horizontal'
-    size_hint_y: None
-    height: '50dp'
-    padding: '5dp'
-    canvas.before:
-        Color:
-            rgba: utils.get_color_from_hex('#2c3e50') if self.state == 'normal' else utils.get_color_from_hex('#34495e')
-        Rectangle:
-            size: self.size
-            pos: self.pos
-        Color:
-            rgba: 1, 1, 1, 0.1
-        Line:
-            points: self.x, self.y, self.x + self.width, self.y
-
-    Label:
-        text: root.objetivo
-        text_size: self.width, None
-        halign: 'center'
-    Label:
-        text: root.actualizacion
-        halign: 'center'
-    Label:
-        text: root.logros
-        halign: 'center'
-    Label:
-        text: root.ayuda_dios
-        halign: 'center'
-        italic: True
-
 <PurposesScreen>:
     BoxLayout:
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgb: 0.1, 0.1, 0.1
+                rgba: 0.06, 0.06, 0.12, 1
             Rectangle:
-                size: self.size
                 pos: self.pos
+                size: self.size
 
-        # --- ENCABEZADO DE PANTALLA ---
-        Label:
-            text: "¿Cuáles son tus metas?"
-            font_size: '24sp'
-            size_hint_y: None
-            height: '60dp'
-            bold: True
-
-        # --- BOTONES DE ACCIÓN ---
+        # --- TITULO ---
         BoxLayout:
             size_hint_y: None
             height: '50dp'
-            padding: '5dp'
-            spacing: '10dp'
-
-            BotonEstilizado:
-                texto: "+ Nuevo Propósito"
-                icono: "images/metas_icon.png"
-                color_fondo: 0.15, 0.68, 0.38, 1
-                on_release: root.add_purpose()
-
-            BotonEstilizado:
-                texto: "Propósito Alcanzado"
-                mostrar_icono: False
-                color_fondo: 0.16, 0.50, 0.73, 1
-                on_release: root.mark_as_done()
-
-        # --- ENCABEZADO DE LA TABLA (Fijo) ---
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: '40dp'
             canvas.before:
                 Color:
-                    rgb: 0.2, 0.2, 0.2
+                    rgba: 0.08, 0.08, 0.18, 1
                 Rectangle:
-                    size: self.size
                     pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.7
+                Line:
+                    points: self.x, self.y, self.x + self.width, self.y
+                    width: 1.5
             Label:
-                text: "Objetivo"
+                text: "Metas"
+                font_size: '20sp'
                 bold: True
-            Label:
-                text: "Actualización"
-                bold: True
-            Label:
-                text: "Logros"
-                bold: True
-            Label:
-                text: "Dios me ayudó en"
-                bold: True
+                color: 0.95, 0.78, 0.1, 1
 
-        # --- ÁREA DE SCROLL (Registros) ---
+        # --- BOTON NUEVA META ---
+        BoxLayout:
+            size_hint_y: None
+            height: '52dp'
+            padding: '10dp', '6dp'
+            canvas.before:
+                Color:
+                    rgba: 0.07, 0.07, 0.15, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            BotonEstilizado:
+                texto: "+ Nueva Meta"
+                mostrar_icono: False
+                color_fondo: (0.18, 0.45, 0.78, 1)
+                on_release: root.nueva_meta()
+
+        # --- LISTA DE METAS ---
         ScrollView:
             do_scroll_x: False
-            GridLayout:
-                id: purposes_container
-                cols: 1
+            size_hint_y: 1
+
+            BoxLayout:
+                id: metas_list
+                orientation: 'vertical'
                 size_hint_y: None
                 height: self.minimum_height
-                spacing: '2dp'
+                padding: '10dp', '8dp'
+                spacing: '6dp'
 
-        # --- LEYENDA INFERIOR ---
-        Label:
-            text: "Haz clic en un registro para editarlo"
-            size_hint_y: None
-            height: '30dp'
-            font_size: '12sp'
-            color: 0.6, 0.6, 0.6, 1
-
+        # --- BOTON VOLVER ---
         BotonEstilizado:
             texto: "Volver al Principal"
-            size_hint_y: 0.1
+            size_hint_y: None
+            height: '52dp'
             mostrar_icono: False
-            color_fondo: 0.35, 0.35, 0.35, 1
+            color_fondo: (0.3, 0.3, 0.3, 0.6)
             on_release:
                 app.root.transition.direction = 'right'
                 app.root.current = 'main'

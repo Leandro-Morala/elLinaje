@@ -1,213 +1,409 @@
 import os
+import json
 import zipfile
-from kivy.lang import Builder
-from kivy.utils import platform
-from screens.basescreen import BaseScreen
+import shutil
+import tempfile
+import sqlite3
 from datetime import datetime
 
-from kivy.uix.popup import Popup
-from kivy.uix.filechooser import FileChooserListView # O FileChooserIconView para iconos
+from kivy.app import App
+from kivy.logger import Logger
+from kivy.metrics import dp
+from kivy.utils import platform
+from kivy.clock import mainthread
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+from kivy.uix.filechooser import FileChooserListView
+from kivy.properties import StringProperty, ListProperty
 
-from kivy.logger import Logger
-from kivy.app import App
-from screens.plantilla import RolloBiblico
 from kivy.factory import Factory
-import random
+from screens.basescreen import BaseScreen
 
-# para usar el registro biblico
-from db.bibliasestaticas import Reg
-# Builder.load_file('kv_files/config.kv')
+
+# Tablas que se combinan en un merge (excluye datos estáticos/semilla)
+_TABLAS_MERGE = [
+    'oraciones', 'trabajos', 'propositos', 'pasos',
+    'capitulos', 'ofrendas', 'estudio_versiculos',
+]
+
+FONTS_MAP = {
+    'Roboto (predeterminado)':  '',
+    'La Monarchie':             os.path.join('stdt', 'fonts', 'LaMonarchiedeSaintOmbre.ttf'),
+    'Lacheyard Script':         os.path.join('stdt', 'fonts', 'LacheyardScript_PERSONAL_USE_ONLY.otf'),
+}
+TAMANOS_MAP = {
+    'Pequeno  (12sp)': '12sp',
+    'Normal   (14sp)': '14sp',
+    'Grande   (16sp)': '16sp',
+    'X-Grande (18sp)': '18sp',
+}
+
 
 class ConfigScreen(BaseScreen):
-    
+
+    user_nombre      = StringProperty('--')
+    user_nivel       = StringProperty('Nivel 0')
+    user_oraciones   = StringProperty('')
+    status_backup    = StringProperty('')
+    status_apariencia = StringProperty('')
+
+    font_opciones    = ListProperty(list(FONTS_MAP.keys()))
+    tamano_opciones  = ListProperty(list(TAMANOS_MAP.keys()))
+    font_actual      = StringProperty('Roboto (predeterminado)')
+    tamano_actual    = StringProperty('Normal   (14sp)')
+
     def __init__(self, **kwargs):
-        # Llama al constructor de BaseScreen para inicializar self.DM
         super().__init__(**kwargs)
-        self.Biblioteca = App.get_running_app().getModel('Biblioteca')
-        
-    def go_to_profile_edit(self):
-        """Navega a la pantalla de datos para editar perfil."""
+        self._zip_pendiente = None
+        self._oraciones_model = App.get_running_app().getModel('OracionesModel')
+
+    def on_enter(self, *args):
+        self._cargar_usuario()
+        self._cargar_apariencia()
+
+    # ── Info de usuario ────────────────────────────────────────────
+
+    def _cargar_usuario(self):
+        usr = self.user.get_one(1) if self.user else None
+        if not usr:
+            return
+        self.user_nombre = usr['username'] or '--'
+        nivel = self.get_player_nivel() or 0
+        self.user_nivel = f"Nivel  {nivel}"
+
+        if self._oraciones_model:
+            try:
+                total = len(self._oraciones_model.obtener_todos() or [])
+                self.user_oraciones = f"Oraciones registradas: {total}"
+            except Exception:
+                pass
+
+    def ir_a_perfil(self):
         self.manager.current = 'player_data'
 
-    def export_data(self):
-        """Comprime la base de datos y recursos en un .zip."""
-        try:
-            # Nombre del archivo con fecha
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            zip_name = f"backup_linaje_{timestamp}.zip"
-            
-            # Ruta de destino (usamos descargas o documentos)
-            path_to_save = os.path.join(os.path.expanduser("~"), zip_name)
+    # ── RolloBiblico ───────────────────────────────────────────────
 
-            with zipfile.ZipFile(path_to_save, 'w') as zipf:
-                # 1. Comprimir la Base de Datos
-                # Asumo que self.DM.db_path tiene la ruta al archivo .db
-                db_file = "player_data.db" # Cambia al nombre real de tu archivo
-                if os.path.exists(db_file):
-                    zipf.write(db_file, arcname=db_file)
-                
-                # 2. Comprimir carpeta de imágenes si existe
-                img_dir = 'images/'
-                if os.path.exists(img_dir):
-                    for root, dirs, files in os.walk(img_dir):
-                        for file in files:
-                            zipf.write(os.path.join(root, file))
-
-            print(f"Copia de seguridad creada en: {path_to_save}")
-            # Aquí podrías mostrar un Popup de éxito
-        except Exception as e:
-            print(f"Error al exportar: {e}")
-    
-    def get_android_external_path(self):
-        """
-        Retorna la ruta segura para navegar en Android.
-        En PC retorna el Home del usuario.
-        """
-        if platform == 'android':
-            from android.permissions import request_permissions, Permission
-            # Pedimos permisos (esto debería hacerse al iniciar la app o la pantalla)
-            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
-            
-            # Ruta común en Android para documentos/descargas
-            from android.storage import primary_external_storage_path
-            return primary_external_storage_path()
-        else:
-            # En Windows/Linux/Mac usamos la carpeta personal
-            return os.path.expanduser("~")
-    
-    def import_data(self):
-        """Abre un explorador para seleccionar un .zip y restaurar."""
-        
-        filechooser.open_file(
-            title="Seleccionar Backup",
-            filters=[("Archivos ZIP", "*.zip")],
-            on_selection=self._handle_import
-        )
-
-    def _handle_import(self, selection):
-        if not selection:
+    def abrir_rollo(self):
+        contenido = App.get_running_app().get_promesa()
+        if not contenido:
             return
-            
-        zip_path = selection[0]
-        try:
-            with zipfile.ZipFile(zip_path, 'r') as zipf:
-                zipf.extractall(".") # Extrae en la carpeta raíz
-            
-            # RECARGAR DATOS: Muy importante para que el juego vea los cambios
-            self.DM.load_data() 
-            print("Datos restaurados con éxito. Reinicia la app si es necesario.")
-        except Exception as e:
-            print(f"Error al importar: {e}")
+        rollo = Factory.RolloBiblico()
+        rollo.mostrar_pasaje(0, ContenidoTotal=contenido)
 
-    def go_next(self,to):
-        pass
-        
-    def openbible(self):
-        promesas=[
-            ('Filipenses',4,19,50),    ('Jeremías',29,11,24),     ('2 Pedro',1,4,61),
-            ('Isaías',41,10,23),       ('2 Corintios',1,20,47),   ('Juan',3,16,43),
-            ('1 Juan',1,9,62),         ('Isaías',43,2,23),        ('Juan',14,27,43),
-            ('Josué',23,146),         ('Isaías',40,31,23),       ('Romanos',8,28,45),
-            ('2 Corintios',7,1,47),     ('Mateo',11,'28-29',40),   ('Santiago',1,15,59),
-            ('Isaías',40,'26-31',23),  ('2 Pedro',3,9,61),        ('Deuteronomio',31,8,5),
-            ('1 Corintios',10,13,46),  ('Jeremías',30,17,24),     ('Isaías',54,17,23),
-            ('Romanos',6,23,45),       ('Romanos',10,9,45),       ('Éxodo',15,26,2),
-            ('Apocalipsis',21,4,66),   ('Josué',1,9,6),          ('Apocalipsis',3,5,66),
-            ('Isaías',26,3,23),        ('Romanos',8,32,45),       ('1 Reyes',8,56,11),
-            ]
-        # elegir uno
-        r=random.Random()
-        
-        maximo = len(promesas)
-        quien = int( r.random()*maximo )
-        # quien = 15 # prueba de ISAIAS 40:26-31
-        # quien = 0
-        ver_promesa = promesas[quien]
-        
-        biblioteca = self.Biblioteca
-        # la primer biblia del listado
-        biblia = biblioteca['contenido']
-        # book :     'id' 'book_reference_id testament_reference_id  name 
-        rvr1960=None
-        for n in biblia:
-            #REINA VALERA 1960
-            if 'RVR1960' in n.path :
-                # es el reina valera
-                rvr1960 = n
-                break
-        Logger.info(f"la promesa:{ver_promesa}")
-        # Juan 3:16
-        # contenido = rnv1960.buscarVersiculo('JUAN',3,16)
-        contenido = rvr1960.buscarVersiculo( *ver_promesa )
-        # para probar como funciona:
-        Logger.info(f"{contenido=}"+"*"*30)
-        if len(contenido) == 1:
-            Logger.info("pasa por aqui")
-            """
-                existe la posiblidad de que tena 1 o mas registros...
-                
-                muestro el primero y dejo los otros a discrecion.
-            """ 
-            Reg = contenido[0]
-            libro=Reg.nameBook
-            capitulo = Reg.chapter
-            versiculo = Reg.verse
-            texto = Reg.text
-            Logger.info(f"mostrare:{libro},{capitulo},{versiculo},{texto}")
-        popap =  Factory.RolloBiblico()
-        # popap.cerrar = lambda : self.go_next(1)        
-        #popap.mostrar_pasaje( libro ,capitulo,versiculo, texto , total_versiculos=50)
-        popap.mostrar_pasaje( 0, contenido , lambda : self.go_next(1) )
-        
-# ... dentro de tu clase ConfigScreen ...
+    # ── Exportar ───────────────────────────────────────────────────
 
-    def open_file_manager(self, mode='export'):
-        """Abre el explorador de archivos interno de Kivy."""
-        content = BoxLayout(orientation='vertical')
-        externalPath=self.get_android_external_path()
-        # El widget de Kivy para explorar archivos
-        file_chooser = FileChooserListView(
-            path=externalPath , # iniciar en el path conveniente
-            filters=['*.zip'] if mode == 'import' else [] # Filtra si es para importar
+    @mainthread
+    def abrir_selector_exportar(self):
+        content = BoxLayout(orientation='vertical', padding=dp(8), spacing=dp(8))
+
+        if platform == 'android':
+            try:
+                from android.permissions import request_permissions, Permission
+                request_permissions([Permission.WRITE_EXTERNAL_STORAGE])
+            except Exception:
+                pass
+
+        fc = FileChooserListView(
+            path=self._carpeta_backup(),
+            dirselect=True,
+            filters=[],
         )
-        
-        content.add_widget(file_chooser)
+        content.add_widget(fc)
 
-        # Botones inferiores del Popup
-        buttons = BoxLayout(size_hint_y=None, height='50dp', spacing='10dp')
-        btn_cancel = Button(text='Cancelar', on_release=lambda x: self._popup.dismiss())
-        
-        # Botón de acción (Cargar o Guardar)
-        action_text = 'Seleccionar' if mode == 'import' else 'Guardar aquí'
-        btn_action = Button(text=action_text, background_color=(0.1, 0.6, 0.3, 1))
-        
-        # Definimos qué pasa al confirmar
-        if mode == 'import':
-            btn_action.bind(on_release=lambda x: self._process_import(file_chooser.selection))
-        else:
-            btn_action.bind(on_release=lambda x: self._process_export(file_chooser.path))
+        btn_row = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(8))
+        btn_c = Button(text='Cancelar', background_normal='',
+                       background_color=(0.3, 0.3, 0.3, 1))
+        btn_s = Button(text='Exportar aqui', background_normal='',
+                       background_color=(0.18, 0.48, 0.28, 1), bold=True)
+        btn_row.add_widget(btn_c)
+        btn_row.add_widget(btn_s)
+        content.add_widget(btn_row)
 
-        buttons.add_widget(btn_cancel)
-        buttons.add_widget(btn_action)
-        content.add_widget(buttons)
-
-        # Crear y abrir el Popup
-        self._popup = Popup(title="Explorador de Archivos", content=content,
-                            size_hint=(0.9, 0.9))
+        self._popup = Popup(title='Elegir carpeta destino',
+                            content=content, size_hint=(0.95, 0.9))
+        btn_c.bind(on_release=self._popup.dismiss)
+        btn_s.bind(on_release=lambda *_: self._confirmar_exportar(fc.path))
         self._popup.open()
 
-    def _process_import(self, selection):
-        if selection:
-            # selection es una lista con la ruta completa
-            self._popup.dismiss()
-            # Aquí llamas a tu lógica de descompresión
-            print(f"Importando desde: {selection[0]}")
-            # self.import_data_logic(selection[0])
-
-    def _process_export(self, path):
+    def _confirmar_exportar(self, carpeta):
         self._popup.dismiss()
-        print(f"Exportando backup en la carpeta: {path}")
-        # Aquí llamas a tu lógica de creación de ZIP
-        # self.export_data_logic(path)
+        self.exportar(carpeta)
+
+    def exportar(self, carpeta=None):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        nombre    = f"ElLinaje_{timestamp}.zip"
+        destino   = os.path.join(carpeta or self._carpeta_backup(), nombre)
+
+        try:
+            version = App.get_running_app().app_config.get('VERSION', [0, 3, 0])
+            ver_str = '.'.join(str(v) for v in version)
+
+            with zipfile.ZipFile(destino, 'w', zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr('version.txt', ver_str)
+                for root, _dirs, files in os.walk('data'):
+                    for f in files:
+                        fp = os.path.join(root, f)
+                        zf.write(fp, arcname=fp)
+
+            self.status_backup = f"Guardado: {nombre}\nEn: {self._carpeta_backup()}"
+        except Exception as e:
+            self.status_backup = f"Error al exportar: {e}"
+            Logger.error(f"[Config] export: {e}")
+
+    def _carpeta_backup(self):
+        if platform == 'android':
+            try:
+                from android.storage import primary_external_storage_path
+                return primary_external_storage_path()
+            except Exception:
+                pass
+        return os.path.expanduser("~")
+
+    # ── Importar ───────────────────────────────────────────────────
+
+    @mainthread
+    def abrir_selector_importar(self):
+        content = BoxLayout(orientation='vertical', padding=dp(8), spacing=dp(8))
+
+        if platform == 'android':
+            try:
+                from android.permissions import request_permissions, Permission
+                request_permissions([Permission.READ_EXTERNAL_STORAGE,
+                                     Permission.WRITE_EXTERNAL_STORAGE])
+            except Exception:
+                pass
+
+        fc = FileChooserListView(
+            path=self._carpeta_backup(),
+            filters=['*.zip'],
+        )
+        content.add_widget(fc)
+
+        btn_row = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(8))
+        btn_c = Button(text='Cancelar', background_normal='',
+                       background_color=(0.3, 0.3, 0.3, 1))
+        btn_s = Button(text='Seleccionar', background_normal='',
+                       background_color=(0.18, 0.45, 0.78, 1), bold=True)
+        btn_row.add_widget(btn_c)
+        btn_row.add_widget(btn_s)
+        content.add_widget(btn_row)
+
+        self._popup = Popup(title='Seleccionar backup (.zip)',
+                            content=content, size_hint=(0.95, 0.9))
+        btn_c.bind(on_release=self._popup.dismiss)
+        btn_s.bind(on_release=lambda *_: self._verificar_zip(fc.selection))
+        self._popup.open()
+
+    def _verificar_zip(self, selection):
+        if not selection:
+            self.status_backup = 'Selecciona un archivo .zip primero'
+            return
+        zip_path = selection[0]
+        if not os.path.exists(zip_path):
+            self.status_backup = 'Archivo no encontrado'
+            return
+
+        self._popup.dismiss()
+
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                nombres = zf.namelist()
+                if not any('ElLinaje.db' in n for n in nombres):
+                    self.status_backup = 'ZIP invalido: no contiene ElLinaje.db'
+                    return
+                # Version check
+                ver_msg = ''
+                if 'version.txt' in nombres:
+                    ver_imp = zf.read('version.txt').decode().strip()
+                    ver_act = '.'.join(str(v) for v in
+                                      App.get_running_app().app_config.get('VERSION', [0, 3, 0]))
+                    if ver_imp != ver_act:
+                        ver_msg = f"Backup v{ver_imp}  /  App v{ver_act}\n"
+        except Exception as e:
+            self.status_backup = f'Error leyendo zip: {e}'
+            return
+
+        self._zip_pendiente = zip_path
+        self._modal_confirmacion(ver_msg)
+
+    @mainthread
+    def _modal_confirmacion(self, ver_msg=''):
+        content = BoxLayout(orientation='vertical', padding=dp(14), spacing=dp(10))
+
+        content.add_widget(Label(
+            text=f"{ver_msg}Elige como importar los datos:",
+            font_size='13sp', color=(0.88, 0.88, 0.92, 1),
+            size_hint_y=None, height=dp(52), halign='center',
+        ))
+
+        btn_comb = Button(
+            text="Combinar\n(agrega registros nuevos, mantiene los actuales)",
+            background_normal='', background_color=(0.18, 0.45, 0.28, 1),
+            font_size='12sp', halign='center',
+        )
+        btn_remp = Button(
+            text="Reemplazar\n(hace backup y reemplaza todo — requiere reinicio)",
+            background_normal='', background_color=(0.55, 0.22, 0.12, 1),
+            font_size='12sp', halign='center',
+        )
+        btn_cancel = Button(
+            text='Cancelar', background_normal='',
+            background_color=(0.25, 0.25, 0.25, 1),
+            size_hint_y=None, height=dp(42),
+        )
+
+        content.add_widget(btn_comb)
+        content.add_widget(btn_remp)
+        content.add_widget(btn_cancel)
+
+        self._popup2 = Popup(title='Importar backup',
+                             content=content, size_hint=(0.9, 0.58))
+        btn_comb.bind(on_release=lambda *_: self._importar_combinar())
+        btn_remp.bind(on_release=lambda *_: self._importar_reemplazar())
+        btn_cancel.bind(on_release=self._popup2.dismiss)
+        self._popup2.open()
+
+    def _importar_combinar(self):
+        self._popup2.dismiss()
+        zip_path = self._zip_pendiente
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                with zipfile.ZipFile(zip_path, 'r') as zf:
+                    zf.extractall(tmpdir)
+
+                imported_db = self._buscar_db_en_tmpdir(tmpdir)
+                if not imported_db:
+                    self.status_backup = 'No se encontro ElLinaje.db en el backup'
+                    return
+
+                resultados = self._merge_databases(imported_db)
+
+                # Copiar archivos nuevos de todos los subdirectorios (img, snd, etc.)
+                src_data_dir = os.path.join(tmpdir, 'data')
+                if os.path.exists(src_data_dir):
+                    for subdir in os.listdir(src_data_dir):
+                        src_sub = os.path.join(src_data_dir, subdir)
+                        if not os.path.isdir(src_sub):
+                            continue
+                        dst_sub = os.path.join('data', subdir)
+                        os.makedirs(dst_sub, exist_ok=True)
+                        for f in os.listdir(src_sub):
+                            src_f = os.path.join(src_sub, f)
+                            dst_f = os.path.join(dst_sub, f)
+                            if os.path.isfile(src_f) and not os.path.exists(dst_f):
+                                shutil.copy2(src_f, dst_f)
+
+            total = sum(v for v in resultados.values() if isinstance(v, int))
+            self.status_backup = f"Combinado: {total} registros nuevos importados"
+        except Exception as e:
+            self.status_backup = f"Error combinando: {e}"
+            Logger.error(f"[Config] merge: {e}")
+
+    def _importar_reemplazar(self):
+        self._popup2.dismiss()
+        zip_path = self._zip_pendiente
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            bak_dir   = f"data_bak_{timestamp}"
+            if os.path.exists('data'):
+                shutil.copytree('data', bak_dir)
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                with zipfile.ZipFile(zip_path, 'r') as zf:
+                    zf.extractall(tmpdir)
+
+                src_data = os.path.join(tmpdir, 'data')
+                if os.path.exists(src_data):
+                    if os.path.exists('data'):
+                        shutil.rmtree('data')
+                    shutil.copytree(src_data, 'data')
+                    self.status_backup = (f"Reemplazado correctamente.\n"
+                                          f"Backup anterior: {bak_dir}\n"
+                                          f"Reinicia la aplicacion para ver los cambios.")
+                else:
+                    self.status_backup = 'No se encontro carpeta data/ en el backup'
+        except Exception as e:
+            self.status_backup = f"Error reemplazando: {e}"
+            Logger.error(f"[Config] replace: {e}")
+
+    def _buscar_db_en_tmpdir(self, tmpdir):
+        opciones = [
+            os.path.join(tmpdir, 'data', 'ElLinaje.db'),
+            os.path.join(tmpdir, 'ElLinaje.db'),
+        ]
+        for p in opciones:
+            if os.path.exists(p):
+                return p
+        return None
+
+    def _merge_databases(self, src_path):
+        conn_src = sqlite3.connect(src_path)
+        conn_src.row_factory = sqlite3.Row
+        conn_dst = sqlite3.connect('data/ElLinaje.db')
+        resultados = {}
+
+        for tabla in _TABLAS_MERGE:
+            try:
+                rows = conn_src.execute(f"SELECT * FROM {tabla}").fetchall()
+                if not rows:
+                    resultados[tabla] = 0
+                    continue
+                cols   = list(rows[0].keys())
+                ph     = ','.join(['?'] * len(cols))
+                colstr = ','.join(cols)
+                count  = 0
+                for row in rows:
+                    try:
+                        conn_dst.execute(
+                            f"INSERT OR IGNORE INTO {tabla} ({colstr}) VALUES ({ph})",
+                            tuple(row)
+                        )
+                        count += 1
+                    except Exception:
+                        pass
+                conn_dst.commit()
+                resultados[tabla] = count
+            except Exception as e:
+                resultados[tabla] = 0
+                Logger.warning(f"[Config] merge {tabla}: {e}")
+
+        conn_src.close()
+        conn_dst.close()
+        return resultados
+
+    # ── Apariencia ─────────────────────────────────────────────────
+
+    def _cargar_apariencia(self):
+        cfg = App.get_running_app().app_config
+        font_path = cfg.get('FONT_NAME', '')
+        font_size = cfg.get('FONT_SIZE', '14sp')
+
+        for nombre, path in FONTS_MAP.items():
+            if path == font_path:
+                self.font_actual = nombre
+                break
+
+        for nombre, size in TAMANOS_MAP.items():
+            if size == font_size:
+                self.tamano_actual = nombre
+                break
+
+    def aplicar_apariencia(self):
+        font_path = FONTS_MAP.get(self.font_actual, '')
+        font_size = TAMANOS_MAP.get(self.tamano_actual, '14sp')
+
+        cfg = App.get_running_app().app_config
+        cfg['FONT_NAME'] = font_path
+        cfg['FONT_SIZE'] = font_size
+
+        # Persistir
+        config_path = cfg.get('CONFIG_PATH', os.path.join('data', 'config.json'))
+        try:
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
+            with open(config_path, 'w') as f:
+                json.dump({'FONT_NAME': font_path, 'FONT_SIZE': font_size}, f)
+            self.status_apariencia = 'Guardado. Se aplica al reiniciar.'
+        except Exception as e:
+            self.status_apariencia = f'Error guardando: {e}'

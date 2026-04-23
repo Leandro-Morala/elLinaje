@@ -8,6 +8,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.lang import Builder
 import os
+import json
 import random
 # importar librerias de bases de datos
 from db import init_db, base
@@ -19,6 +20,8 @@ from db.proposito import PropositoModel
 from db.pasos import PasosModel
 from db.usuario import UsuariosModel
 from db.capitulos import CapitulosModel
+from db.ofrendas import OfrendasModel
+from db.estudio import EstudioModel
 #importacion de libreria especial:
 # from db.bibliasestaticas import bookModel,metadataModel,verseModel,BibliasDisponibles
 from db.bibliasestaticas import Biblia,BibliasDisponibles
@@ -51,6 +54,7 @@ from screens.work import WorkScreen
 from screens.verses import VersesScreen
 from screens.verses_game import VersesGameScreen
 from screens.purposes import PurposesScreen
+from screens.estudio import EstudioScreen, EstudioDetalleScreen
 from screens.config import ConfigScreen
 
 from defaultconfig import defaultConfig
@@ -76,6 +80,18 @@ class GameApp(App):
         
         #DatabaseManager.configurar( ('data','ElLinaje.db') )
         Logger.info(f"ruta de base de datos:{self.app_config['DB_PATH']}")
+
+        # Cargar preferencias guardadas (tipografia, tamaño)
+        config_path = self.app_config.get('CONFIG_PATH', os.path.join('data', 'config.json'))
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r') as _f:
+                    _saved = json.load(_f)
+                    self.app_config.update({k: v for k, v in _saved.items()
+                                            if k in ('FONT_NAME', 'FONT_SIZE')})
+                Logger.info(f"[Config] preferencias cargadas: {_saved}")
+            except Exception as _e:
+                Logger.warning(f"[Config] no se pudo cargar config.json: {_e}")
         
         DatabaseManager.configurar( 
             db_path = (self.app_config['DB_PATH'],) ,
@@ -94,6 +110,12 @@ class GameApp(App):
         
         self.capitulsmodel = CapitulosModel()
         self.dbmodel.update({"CapitulosModel":self.capitulsmodel})
+
+        self.ofrendasmodel = OfrendasModel()
+        self.dbmodel.update({"OfrendasModel":self.ofrendasmodel})
+
+        self.estudiomodel = EstudioModel()
+        self.dbmodel.update({"EstudioModel":self.estudiomodel})
         
         self.oracionesmodel = OracionesModel()
         self.dbmodel.update({"OracionesModel":self.oracionesmodel})
@@ -158,6 +180,8 @@ class GameApp(App):
         sm.add_widget(VersesGameScreen(name='verses_game'))  # desafio biblico
         sm.add_widget(ManiScreen(name='mani' ))          # trabajo de la inglesia
         sm.add_widget(PurposesScreen(name='purposes' ))  # propositos propios
+        sm.add_widget(EstudioScreen(name='estudio' ))              # estudio biblico - lista
+        sm.add_widget(EstudioDetalleScreen(name='estudio_detalle'))  # estudio biblico - editor
         sm.add_widget(ConfigScreen(name='config' ))      # configuracion y salidas
         
         

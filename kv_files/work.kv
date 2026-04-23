@@ -1,123 +1,501 @@
 <WorkScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: '10dp'
-        spacing: '10dp'
+        canvas.before:
+            Color:
+                rgba: 0.06, 0.06, 0.12, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
-        Label:
-            text: "Registrar Trabajo en la Iglesia"
-            size_hint_y: 0.1
-
-        # --- AREA DE TABLA DE REGISTROS ---
-        RecycleView:
-            id: history_rv
-            size_hint_y: 0.35
-
-            data: root.history_data
-
-            viewclass: 'WorkHistoryItem'
-
-            RecycleView:
-                id: rv_adapter
-
-                RecycleBoxLayout:
-                    default_size: None, dp(50)
-                    default_size_hint: 1, None
-                    orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    padding: dp(2)
-                    spacing: dp(2)
-
-        # --- CAMPOS DE ENTRADA ---
+        # --- TITULO ---
         BoxLayout:
-            size_hint_y: 0.5
-            orientation: 'vertical'
-            spacing: '5dp'
-
+            size_hint_y: None
+            height: '50dp'
+            canvas.before:
+                Color:
+                    rgba: 0.08, 0.08, 0.18, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.7
+                Line:
+                    points: self.x, self.y, self.x + self.width, self.y
+                    width: 1.5
             Label:
-                text: "Desde (YYYY-MM-DD HH:MM)"
+                text: "Colaboraciones"
+                font_size: '20sp'
+                bold: True
+                color: 0.95, 0.78, 0.1, 1
+
+        # --- CONTENIDO SCROLLABLE EXTERNO ---
+        ScrollView:
+            do_scroll_x: False
+            size_hint_y: 1
+
+            BoxLayout:
+                orientation: 'vertical'
                 size_hint_y: None
-                height: '30dp'
-            TextInput:
-                id: start_time_input
-                multiline: False
+                height: self.minimum_height
+                padding: '10dp', '8dp'
+                spacing: '0dp'
 
-            Label:
-                text: "Hasta (YYYY-MM-DD HH:MM)"
-                size_hint_y: None
-                height: '30dp'
-            TextInput:
-                id: end_time_input
-                multiline: False
+                # =====================================================
+                # === SECCION SERVICIO ================================
+                # =====================================================
 
-            Label:
-                text: "Observación"
-                size_hint_y: None
-                height: '30dp'
-            TextInput:
-                id: obs_input
-                multiline: False
+                # Encabezado seccion
+                BoxLayout:
+                    size_hint_y: None
+                    height: '38dp'
+                    padding: '6dp', '4dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.1, 0.18, 0.35, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "SERVICIO"
+                        font_size: '13sp'
+                        bold: True
+                        color: 0.55, 0.78, 1, 1
+                        size_hint_x: 0.35
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        text: root.total_horas
+                        font_size: '11sp'
+                        color: 0.7, 0.7, 0.85, 1
+                        size_hint_x: 0.65
+                        halign: 'right'
+                        text_size: self.size
+                        valign: 'middle'
 
-            BotonEstilizado:
-                texto: "Agregar Registro Manual"
-                size_hint_y: 0.25
-                mostrar_icono: False
-                color_fondo: 0.1, 0.6, 0.2, 1
-                on_release: root.add_manual_registro(start_time_input.text, end_time_input.text, obs_input.text)
+                # Filtro Año / Mes (servicio)
+                BoxLayout:
+                    size_hint_y: None
+                    height: '38dp'
+                    spacing: '6dp'
+                    padding: 0, '2dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.08, 0.12, 0.25, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
 
+                    Label:
+                        text: "Filtrar:"
+                        size_hint_x: None
+                        width: '50dp'
+                        font_size: '12sp'
+                        color: 0.6, 0.6, 0.75, 1
+
+                    Spinner:
+                        id: spinner_colab_anio
+                        text: 'Todos'
+                        values: root.colab_anios_lista
+                        size_hint_x: 0.45
+                        font_size: '13sp'
+                        background_normal: ''
+                        background_color: 0.14, 0.14, 0.3, 1
+                        color: 0.9, 0.9, 1, 1
+                        on_text: root.on_filter_colab(self.text, spinner_colab_mes.text)
+
+                    Spinner:
+                        id: spinner_colab_mes
+                        text: 'Todos'
+                        values: ['Todos','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+                        size_hint_x: 0.45
+                        font_size: '13sp'
+                        background_normal: ''
+                        background_color: 0.14, 0.14, 0.3, 1
+                        color: 0.9, 0.9, 1, 1
+                        on_text: root.on_filter_colab(spinner_colab_anio.text, self.text)
+
+                # Formulario colaboracion
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '46dp'
+                    spacing: '6dp'
+                    padding: 0, '4dp', 0, 0
+
+                    TextInput:
+                        id: fecha_colab
+                        hint_text: "dd/mm/aaaa"
+                        multiline: False
+                        size_hint_x: 0.42
+                        background_color: 0.1, 0.1, 0.22, 1
+                        foreground_color: 0.95, 0.95, 0.88, 1
+                        hint_text_color: 0.35, 0.35, 0.5, 1
+                        cursor_color: 0.55, 0.78, 1, 1
+                        font_size: '13sp'
+                        padding: '8dp', '12dp'
+
+                    Button:
+                        text: "📅"
+                        size_hint_x: None
+                        width: '42dp'
+                        font_size: '16sp'
+                        background_normal: ''
+                        background_color: 0.14, 0.22, 0.45, 1
+                        on_release: root.abrir_fecha_picker('colab')
+
+                    TextInput:
+                        id: horas_colab
+                        hint_text: "Horas (ej: 2.5)"
+                        multiline: False
+                        size_hint_x: 0.48
+                        input_filter: 'float'
+                        background_color: 0.1, 0.1, 0.22, 1
+                        foreground_color: 0.95, 0.95, 0.88, 1
+                        hint_text_color: 0.35, 0.35, 0.5, 1
+                        cursor_color: 0.55, 0.78, 1, 1
+                        font_size: '13sp'
+                        padding: '8dp', '12dp'
+
+                TextInput:
+                    id: desc_colab
+                    hint_text: "Descripcion (opcional)"
+                    multiline: False
+                    size_hint_y: None
+                    height: '44dp'
+                    background_color: 0.1, 0.1, 0.22, 1
+                    foreground_color: 0.95, 0.95, 0.88, 1
+                    hint_text_color: 0.35, 0.35, 0.5, 1
+                    cursor_color: 0.55, 0.78, 1, 1
+                    font_size: '13sp'
+                    padding: '8dp', '12dp'
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: '46dp'
+                    spacing: '6dp'
+                    padding: 0, '3dp', 0, 0
+
+                    BotonEstilizado:
+                        texto: "Actualizar Servicio" if root.editing_colab else "Guardar Servicio"
+                        mostrar_icono: False
+                        size_hint_x: 0.72 if root.editing_colab else 1
+                        color_fondo: (0.22, 0.48, 0.3, 1) if root.editing_colab else (0.18, 0.42, 0.78, 1)
+                        on_release: root.guardar_colaboracion(fecha_colab.text, horas_colab.text, desc_colab.text)
+
+                    BotonEstilizado:
+                        texto: "✕"
+                        mostrar_icono: False
+                        size_hint_x: 0.28 if root.editing_colab else None
+                        width: 0 if not root.editing_colab else self.width
+                        opacity: 1 if root.editing_colab else 0
+                        color_fondo: (0.52, 0.18, 0.18, 1)
+                        on_release: root.cancelar_edicion_colab()
+
+                Label:
+                    text: root.status_colab
+                    size_hint_y: None
+                    height: '20dp' if root.status_colab else 0
+                    opacity: 1 if root.status_colab else 0
+                    font_size: '12sp'
+                    color: 0.55, 0.82, 1, 1
+                    halign: 'center'
+                    text_size: self.size
+                    valign: 'middle'
+
+                # Cabecera columnas historial colaboraciones
+                BoxLayout:
+                    size_hint_y: None
+                    height: '26dp'
+                    padding: '6dp', '2dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.08, 0.12, 0.22, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "Fecha"
+                        size_hint_x: 0.28
+                        font_size: '11sp'
+                        bold: True
+                        color: 0.5, 0.5, 0.68, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        text: "Horas"
+                        size_hint_x: 0.17
+                        font_size: '11sp'
+                        bold: True
+                        color: 0.5, 0.5, 0.68, 1
+                        halign: 'center'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        text: "Descripcion"
+                        size_hint_x: 0.39
+                        font_size: '11sp'
+                        bold: True
+                        color: 0.5, 0.5, 0.68, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        size_hint_x: 0.16
+
+                # Lista colaboraciones en su propio ScrollView (max 50% pantalla)
+                ScrollView:
+                    id: colab_scroll
+                    size_hint_y: None
+                    height: min(root.list_max_height, colab_list.minimum_height + dp(4))
+                    do_scroll_x: False
+                    bar_width: dp(3)
+                    bar_color: 0.4, 0.55, 0.8, 0.7
+
+                    BoxLayout:
+                        id: colab_list
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(1)
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: '14dp'
+
+                # =====================================================
+                # === SECCION OFRENDAS ================================
+                # =====================================================
+
+                # Encabezado seccion
+                BoxLayout:
+                    size_hint_y: None
+                    height: '38dp'
+                    padding: '6dp', '4dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.08, 0.2, 0.12, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "OFRENDAS"
+                        font_size: '13sp'
+                        bold: True
+                        color: 0.4, 0.9, 0.55, 1
+                        size_hint_x: 0.35
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        text: root.total_ofrendas
+                        font_size: '11sp'
+                        color: 0.7, 0.85, 0.7, 1
+                        size_hint_x: 0.65
+                        halign: 'right'
+                        text_size: self.size
+                        valign: 'middle'
+
+                # Filtro Año / Mes (ofrendas)
+                BoxLayout:
+                    size_hint_y: None
+                    height: '38dp'
+                    spacing: '6dp'
+                    padding: 0, '2dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.07, 0.15, 0.1, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+                    Label:
+                        text: "Filtrar:"
+                        size_hint_x: None
+                        width: '50dp'
+                        font_size: '12sp'
+                        color: 0.6, 0.75, 0.6, 1
+
+                    Spinner:
+                        id: spinner_ofrenda_anio
+                        text: 'Todos'
+                        values: root.ofrenda_anios_lista
+                        size_hint_x: 0.45
+                        font_size: '13sp'
+                        background_normal: ''
+                        background_color: 0.1, 0.2, 0.14, 1
+                        color: 0.85, 1, 0.85, 1
+                        on_text: root.on_filter_ofrenda(self.text, spinner_ofrenda_mes.text)
+
+                    Spinner:
+                        id: spinner_ofrenda_mes
+                        text: 'Todos'
+                        values: ['Todos','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+                        size_hint_x: 0.45
+                        font_size: '13sp'
+                        background_normal: ''
+                        background_color: 0.1, 0.2, 0.14, 1
+                        color: 0.85, 1, 0.85, 1
+                        on_text: root.on_filter_ofrenda(spinner_ofrenda_anio.text, self.text)
+
+                # Formulario ofrenda
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '46dp'
+                    spacing: '6dp'
+                    padding: 0, '4dp', 0, 0
+
+                    TextInput:
+                        id: fecha_ofrenda
+                        hint_text: "dd/mm/aaaa"
+                        multiline: False
+                        size_hint_x: 0.42
+                        background_color: 0.1, 0.1, 0.22, 1
+                        foreground_color: 0.95, 0.95, 0.88, 1
+                        hint_text_color: 0.35, 0.35, 0.5, 1
+                        cursor_color: 0.4, 0.9, 0.55, 1
+                        font_size: '13sp'
+                        padding: '8dp', '12dp'
+
+                    Button:
+                        text: "📅"
+                        size_hint_x: None
+                        width: '42dp'
+                        font_size: '16sp'
+                        background_normal: ''
+                        background_color: 0.1, 0.28, 0.18, 1
+                        on_release: root.abrir_fecha_picker('ofrenda')
+
+                    TextInput:
+                        id: monto_ofrenda
+                        hint_text: "Monto ($)"
+                        multiline: False
+                        size_hint_x: 0.48
+                        input_filter: 'float'
+                        background_color: 0.1, 0.1, 0.22, 1
+                        foreground_color: 0.95, 0.95, 0.88, 1
+                        hint_text_color: 0.35, 0.35, 0.5, 1
+                        cursor_color: 0.4, 0.9, 0.55, 1
+                        font_size: '13sp'
+                        padding: '8dp', '12dp'
+
+                TextInput:
+                    id: desc_ofrenda
+                    hint_text: "Descripcion (opcional)"
+                    multiline: False
+                    size_hint_y: None
+                    height: '44dp'
+                    background_color: 0.1, 0.1, 0.22, 1
+                    foreground_color: 0.95, 0.95, 0.88, 1
+                    hint_text_color: 0.35, 0.35, 0.5, 1
+                    cursor_color: 0.4, 0.9, 0.55, 1
+                    font_size: '13sp'
+                    padding: '8dp', '12dp'
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: '46dp'
+                    spacing: '6dp'
+                    padding: 0, '3dp', 0, 0
+
+                    BotonEstilizado:
+                        texto: "Actualizar Ofrenda" if root.editing_ofrenda else "Guardar Ofrenda"
+                        mostrar_icono: False
+                        size_hint_x: 0.72 if root.editing_ofrenda else 1
+                        color_fondo: (0.22, 0.48, 0.3, 1) if root.editing_ofrenda else (0.15, 0.48, 0.28, 1)
+                        on_release: root.guardar_ofrenda(fecha_ofrenda.text, monto_ofrenda.text, desc_ofrenda.text)
+
+                    BotonEstilizado:
+                        texto: "✕"
+                        mostrar_icono: False
+                        size_hint_x: 0.28 if root.editing_ofrenda else None
+                        width: 0 if not root.editing_ofrenda else self.width
+                        opacity: 1 if root.editing_ofrenda else 0
+                        color_fondo: (0.52, 0.18, 0.18, 1)
+                        on_release: root.cancelar_edicion_ofrenda()
+
+                Label:
+                    text: root.status_ofrenda
+                    size_hint_y: None
+                    height: '20dp' if root.status_ofrenda else 0
+                    opacity: 1 if root.status_ofrenda else 0
+                    font_size: '12sp'
+                    color: 0.4, 0.9, 0.55, 1
+                    halign: 'center'
+                    text_size: self.size
+                    valign: 'middle'
+
+                # Cabecera columnas historial ofrendas
+                BoxLayout:
+                    size_hint_y: None
+                    height: '26dp'
+                    padding: '6dp', '2dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.07, 0.15, 0.1, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "Fecha"
+                        size_hint_x: 0.27
+                        font_size: '11sp'
+                        bold: True
+                        color: 0.5, 0.68, 0.5, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        text: "Monto"
+                        size_hint_x: 0.24
+                        font_size: '11sp'
+                        bold: True
+                        color: 0.5, 0.68, 0.5, 1
+                        halign: 'center'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        text: "Descripcion"
+                        size_hint_x: 0.33
+                        font_size: '11sp'
+                        bold: True
+                        color: 0.5, 0.68, 0.5, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                    Label:
+                        size_hint_x: 0.16
+
+                # Lista ofrendas en su propio ScrollView (max 50% pantalla)
+                ScrollView:
+                    id: ofrenda_scroll
+                    size_hint_y: None
+                    height: min(root.list_max_height, ofrenda_list.minimum_height + dp(4))
+                    do_scroll_x: False
+                    bar_width: dp(3)
+                    bar_color: 0.3, 0.7, 0.45, 0.7
+
+                    BoxLayout:
+                        id: ofrenda_list
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(1)
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: '10dp'
+
+        # --- BOTON VOLVER ---
         BotonEstilizado:
             texto: "Volver al Principal"
-            size_hint_y: 0.1
+            size_hint_y: None
+            height: '52dp'
             mostrar_icono: False
-            color_fondo: 0.35, 0.35, 0.35, 1
+            color_fondo: (0.3, 0.3, 0.3, 0.6)
             on_release:
                 app.root.transition.direction = 'right'
                 app.root.current = 'main'
-
-# --- PLANTILLA PARA CADA FILA DE LA TABLA ---
-<WorkHistoryItem@BoxLayout>:
-    orientation: 'horizontal'
-    padding: dp(5)
-    spacing: dp(5)
-    size_hint_y: None
-    height: dp(50)
-
-    start_time: ''
-    end_time: ''
-    observation: ''
-    item_index: -1
-
-    # Columna 1: Fechas
-    Label:
-        text: root.start_time + ' -> ' + root.end_time
-        size_hint_x: 0.5
-        text_size: self.size
-        valign: 'middle'
-        halign: 'left'
-
-    # Columna 2: Observación
-    Label:
-        text: root.observation
-        size_hint_x: 0.3
-        text_size: self.size
-        valign: 'middle'
-        halign: 'left'
-
-    # Columna 3: Botones de Acción
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_x: 0.2
-        spacing: dp(2)
-
-        Button:
-            text: 'Edit'
-            font_size: dp(10)
-            size_hint_x: 0.5
-            on_release: app.root.get_screen('work').edit_item(root.item_index)
-
-        Button:
-            text: 'X'
-            font_size: dp(10)
-            size_hint_x: 0.5
-            on_release: app.root.get_screen('work').remove_item(root.item_index)

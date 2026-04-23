@@ -1,4 +1,5 @@
 import random
+import time
 from kivy.properties import StringProperty, ListProperty, BooleanProperty, NumericProperty
 from kivy.logger import Logger
 from kivy.app import App
@@ -56,12 +57,13 @@ class VersesGameScreen(BaseScreen):
     # ------------------------------------------------------------------
 
     def on_enter(self, *args):
-        eliminados = self.capitulos_model.limpiar_expirados(1)
+        eliminados = self.capitulos_model.procesar_envejecimiento(1)
         if eliminados:
-            Logger.info(f"[VersesGame] {eliminados} versiculos expirados eliminados")
+            nivel_actual = int(self.user.get_tag(1, 'nivel') or 0)
+            self.user.set_tag(1, 'nivel', max(0, nivel_actual - eliminados))
+            Logger.info(f"[VersesGame] {eliminados} expirados, nivel {nivel_actual} -> {max(0, nivel_actual - eliminados)}")
         if not self.libros_nombres:
             self._cargar_libros()
-        self._actualizar_vida_info()
         self._nuevo_verso()
 
     def _cargar_libros(self):
@@ -74,26 +76,48 @@ class VersesGameScreen(BaseScreen):
         except Exception as e:
             Logger.error(f"[VersesGame] _cargar_libros: {e}")
 
-    def _actualizar_vida_info(self):
-        registros = self.capitulos_model.get_by_usuario(1)
-        total = len(registros) if registros else 0
-        vida  = self.capitulos_model.calcular_vida_dias(total)
-        self.vida_info = f"{total} versiculos  |  Vida util: {vida} dias"
+    def _dias_restantes(self, registros, registro):
+        """Dias que le quedan a un verso, usando fecha_renovacion si disponible."""
+        total = len(registros)
+        vida_seg = self.capitulos_model.calcular_vida_dias(total) * 86400
+        ts = self.capitulos_model._get_referencia_ts(registro)
+        return (vida_seg - (int(time.time()) - ts)) / 86400
 
     def _nuevo_verso(self):
         registros = self.capitulos_model.get_by_usuario(1)
         if not registros:
             self.verse_text = "No tienes versiculos guardados.\nVuelve a Lectura Biblica para agregar."
+            self.vida_info = ""
             self.fase = 'sin_datos'
             return
 
-        # Peso: versiculos con menor nivel_refuerzo son mas probables
-        pesos = [max(1, 6 - r['nivel_refuerzo']) for r in registros]
-        self._verso_actual = random.choices(list(registros), weights=pesos, k=1)[0]
+        # Calcular dias restantes para cada verso
+        with_dias = [(r, self._dias_restantes(registros, r)) for r in registros]
+
+        # Agrupar en buckets de 5 dias (bucket 0 = mas urgente: 0-5 dias restantes)
+        buckets = {}
+        for r, d in with_dias:
+            bucket = max(0, int(d // 5))
+            buckets.setdefault(bucket, []).append((r, d))
+
+        # Elegir siempre el bucket mas urgente (numero mas bajo)
+        bucket_elegido = sorted(buckets.keys())[0]
+        grupo = buckets[bucket_elegido]
+
+        # Pesos dentro del bucket: menor nivel_refuerzo → mas probable
+        registros_grupo = [r for r, _ in grupo]
+        pesos = [max(1, 6 - r['nivel_refuerzo']) for r in registros_grupo]
+        self._verso_actual = random.choices(registros_grupo, weights=pesos, k=1)[0]
+
+        # vida_info del verso seleccionado (no general)
+        dias_verso = self._dias_restantes(registros, self._verso_actual)
+        dias_str = f"{max(0.0, dias_verso):.1f}"
+        refuerzo = self._verso_actual['nivel_refuerzo']
+        self.vida_info = f"Vence en {dias_str} dias  |  Refuerzo: {refuerzo}/5"
+
         self.verse_text = self._verso_actual['texto']
         self.fase = 'adivinar'
         self._reset_spinners()
-        self._actualizar_vida_info()
 
     def _reset_spinners(self):
         self.capitulos_lista  = []
@@ -213,8 +237,13 @@ class VersesGameScreen(BaseScreen):
             self.resultado_vers       = f"--  Versiculo: era {verso['versiculo']}"
             self.resultado_color_vers = gris
 
-        # Guardar estadisticas (acierto si score >= 0.7)
+        # Actualizar estadisticas de nivel_refuerzo
         self.capitulos_model.actualizar_estadisticas(verso['id'], acertado=(score >= 0.7))
+
+        # Renovar vida del verso segun score (equitativo)
+        registros = self.capitulos_model.get_by_usuario(1)
+        vida_dias = self.capitulos_model.calcular_vida_dias(len(registros) if registros else 0)
+        self.capitulos_model.renovar_verso(verso['id'], self.score_value, vida_dias)
 
         self.fase = 'resultado'
 

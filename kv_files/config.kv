@@ -3,93 +3,284 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgb: 0.05, 0.05, 0.05
+                rgba: 0.06, 0.06, 0.12, 1
             Rectangle:
-                size: self.size
                 pos: self.pos
+                size: self.size
 
-        # Encabezado
-        Label:
-            text: "Configuración y Datos"
-            font_size: '24sp'
-            bold: True
+        # --- TITULO ---
+        BoxLayout:
             size_hint_y: None
-            height: '80dp'
+            height: '50dp'
+            canvas.before:
+                Color:
+                    rgba: 0.08, 0.08, 0.18, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.7
+                Line:
+                    points: self.x, self.y, self.x + self.width, self.y
+                    width: 1.5
+            Label:
+                text: "Configuracion"
+                font_size: '20sp'
+                bold: True
+                color: 0.95, 0.78, 0.1, 1
 
         ScrollView:
+            do_scroll_x: False
+
             BoxLayout:
                 orientation: 'vertical'
-                padding: '20dp'
-                spacing: '15dp'
                 size_hint_y: None
                 height: self.minimum_height
+                padding: '12dp', '8dp'
+                spacing: '10dp'
 
-                # --- SECCIÓN PERFIL ---
-                Label:
-                    text: "Cuenta de Usuario"
-                    halign: 'left'
-                    text_size: self.width, None
-                    color: 0.7, 0.7, 0.7, 1
+                # ══════════ USUARIO ══════════════════════════
+                BoxLayout:
+                    size_hint_y: None
+                    height: '24dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.95, 0.78, 0.1, 0.15
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "  USUARIO"
+                        font_size: '12sp'
+                        bold: True
+                        color: 0.95, 0.78, 0.1, 0.9
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: '72dp'
+                    padding: '10dp', '6dp'
+                    spacing: '4dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.09, 0.09, 0.18, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(6)]
+                        Color:
+                            rgba: 0.95, 0.78, 0.1, 0.25
+                        Line:
+                            rounded_rectangle: self.x+1, self.y+1, self.width-2, self.height-2, dp(5)
+                            width: 1
+
+                    Label:
+                        text: root.user_nombre
+                        font_size: '18sp'
+                        bold: True
+                        color: 1, 0.95, 0.7, 1
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+                        size_hint_y: 0.55
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: 0.45
+                        spacing: '16dp'
+                        Label:
+                            text: root.user_nivel
+                            font_size: '13sp'
+                            color: 0.75, 0.75, 0.88, 1
+                            halign: 'left'
+                            text_size: self.size
+                            valign: 'middle'
+                        Label:
+                            text: root.user_oraciones
+                            font_size: '12sp'
+                            color: 0.55, 0.55, 0.68, 1
+                            halign: 'left'
+                            text_size: self.size
+                            valign: 'middle'
 
                 BotonEstilizado:
-                    texto: "Reingresar Datos de Perfil"
+                    texto: "Editar Perfil"
                     size_hint_y: None
-                    height: '60dp'
+                    height: '48dp'
                     mostrar_icono: False
-                    color_fondo: 0.2, 0.4, 0.8, 1
-                    on_release: root.go_to_profile_edit()
+                    color_fondo: (0.18, 0.35, 0.65, 1)
+                    on_release: root.ir_a_perfil()
 
                 Widget:
                     size_hint_y: None
-                    height: '20dp'
+                    height: '8dp'
 
-                # --- SECCIÓN BACKUP ---
-                Label:
-                    text: "Copia de Seguridad (Backup)"
-                    halign: 'left'
-                    text_size: self.width, None
-                    color: 0.7, 0.7, 0.7, 1
-
-                BotonEstilizado:
-                    texto: "Exportar todo (.zip)"
+                # ══════════ BACKUP ════════════════════════════
+                BoxLayout:
                     size_hint_y: None
-                    height: '60dp'
-                    mostrar_icono: False
-                    color_fondo: 0.1, 0.6, 0.3, 1
-                    on_release: root.open_file_manager(mode='export')
+                    height: '24dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.18, 0.42, 0.28, 0.2
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "  DATOS  (Backup)"
+                        font_size: '12sp'
+                        bold: True
+                        color: 0.45, 0.88, 0.58, 0.9
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
 
-                BotonEstilizado:
-                    texto: "Importar desde archivo"
-                    size_hint_y: None
-                    height: '60dp'
-                    mostrar_icono: False
-                    color_fondo: 0.6, 0.4, 0.2, 1
-                    on_release: root.open_file_manager(mode='import')
-
-                # Información adicional
+                # Status backup
                 Label:
-                    text: "El Linaje v0.2.8\nLos datos se guardan de forma local."
-                    halign: 'center'
+                    text: root.status_backup if root.status_backup else "Sin operaciones recientes"
                     font_size: '12sp'
-                    color: 0.4, 0.4, 0.4, 1
+                    color: 0.55, 0.82, 0.62, 1
                     size_hint_y: None
-                    height: '100dp'
+                    height: '48dp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    canvas.before:
+                        Color:
+                            rgba: 0.07, 0.10, 0.08, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(5)]
 
-                BotonEstilizado:
-                    texto: "Buscar Versículos"
+                BoxLayout:
                     size_hint_y: None
-                    height: '60dp'
-                    icono: "images/search_icon.png"
-                    color_fondo: 0.6, 0.4, 0.2, 1
-                    on_release: root.openbible()
+                    height: '48dp'
+                    spacing: '8dp'
 
-        # Botón Volver
+                    BotonEstilizado:
+                        texto: "Exportar (.zip)"
+                        mostrar_icono: False
+                        color_fondo: (0.18, 0.48, 0.28, 1)
+                        on_release: root.abrir_selector_exportar()
+
+                    BotonEstilizado:
+                        texto: "Importar (.zip)"
+                        mostrar_icono: False
+                        color_fondo: (0.55, 0.32, 0.12, 1)
+                        on_release: root.abrir_selector_importar()
+
+                Widget:
+                    size_hint_y: None
+                    height: '8dp'
+
+                # ══════════ APARIENCIA ════════════════════════
+                BoxLayout:
+                    size_hint_y: None
+                    height: '24dp'
+                    canvas.before:
+                        Color:
+                            rgba: 0.18, 0.18, 0.42, 0.25
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "  APARIENCIA  (proxima version)"
+                        font_size: '12sp'
+                        bold: True
+                        color: 0.65, 0.65, 0.92, 0.9
+                        halign: 'left'
+                        text_size: self.size
+                        valign: 'middle'
+
+                # Tipografia
+                BoxLayout:
+                    size_hint_y: None
+                    height: '44dp'
+                    spacing: '8dp'
+                    Label:
+                        text: "Tipografia:"
+                        size_hint_x: 0.3
+                        font_size: '13sp'
+                        color: 0.7, 0.7, 0.85, 1
+                        halign: 'right'
+                        text_size: self.size
+                        valign: 'middle'
+                    Spinner:
+                        id: spinner_font
+                        text: root.font_actual
+                        values: root.font_opciones
+                        size_hint_x: 0.7
+                        background_normal: ''
+                        background_color: 0.12, 0.12, 0.28, 1
+                        color: 0.9, 0.85, 0.6, 1
+                        font_size: '12sp'
+                        on_text: root.font_actual = self.text
+
+                # Tamaño de fuente
+                BoxLayout:
+                    size_hint_y: None
+                    height: '44dp'
+                    spacing: '8dp'
+                    Label:
+                        text: "Tam. Fuente:"
+                        size_hint_x: 0.3
+                        font_size: '13sp'
+                        color: 0.7, 0.7, 0.85, 1
+                        halign: 'right'
+                        text_size: self.size
+                        valign: 'middle'
+                    Spinner:
+                        id: spinner_tamano
+                        text: root.tamano_actual
+                        values: root.tamano_opciones
+                        size_hint_x: 0.7
+                        background_normal: ''
+                        background_color: 0.12, 0.12, 0.28, 1
+                        color: 0.9, 0.85, 0.6, 1
+                        font_size: '12sp'
+                        on_text: root.tamano_actual = self.text
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: '44dp'
+                    spacing: '8dp'
+                    BotonEstilizado:
+                        texto: "Guardar Apariencia"
+                        mostrar_icono: False
+                        color_fondo: (0.22, 0.22, 0.48, 1)
+                        on_release: root.aplicar_apariencia()
+                    Label:
+                        text: root.status_apariencia
+                        size_hint_x: 0.5
+                        font_size: '11sp'
+                        color: 0.5, 0.75, 0.88, 1
+                        halign: 'center'
+                        text_size: self.size
+                        valign: 'middle'
+
+                Widget:
+                    size_hint_y: None
+                    height: '16dp'
+
+        # --- ROLLO BIBLICO ---
         BotonEstilizado:
-            texto: "Volver al Menú Principal"
+            texto: "Buscar Versiculos"
             size_hint_y: None
-            height: '50dp'
+            height: '52dp'
             mostrar_icono: False
-            color_fondo: 0.5, 0.1, 0.1, 1
+            color_fondo: (0.55, 0.38, 0.12, 1)
+            on_release: root.abrir_rollo()
+
+        # --- VOLVER ---
+        BotonEstilizado:
+            texto: "Volver al Principal"
+            size_hint_y: None
+            height: '52dp'
+            mostrar_icono: False
+            color_fondo: (0.3, 0.3, 0.3, 0.6)
             on_release:
                 app.root.transition.direction = 'right'
                 root.manager.current = 'main'
