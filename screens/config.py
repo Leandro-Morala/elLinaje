@@ -301,6 +301,17 @@ class ConfigScreen(BaseScreen):
             self.status_backup = f"Error combinando: {e}"
             Logger.error(f"[Config] merge: {e}")
 
+    def _copiar_dir(self, src, dst):
+        """Copia recursiva sin copiar metadatos (compatible con SELinux en Android)."""
+        os.makedirs(dst, exist_ok=True)
+        for entry in os.scandir(src):
+            s = entry.path
+            d = os.path.join(dst, entry.name)
+            if entry.is_dir(follow_symlinks=False):
+                self._copiar_dir(s, d)
+            elif entry.is_file(follow_symlinks=False):
+                shutil.copyfile(s, d)
+
     def _importar_reemplazar(self):
         self._popup2.dismiss()
         zip_path = self._zip_pendiente
@@ -308,7 +319,7 @@ class ConfigScreen(BaseScreen):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             bak_dir   = f"data_bak_{timestamp}"
             if os.path.exists('data'):
-                shutil.copytree('data', bak_dir)
+                self._copiar_dir('data', bak_dir)
 
             with tempfile.TemporaryDirectory() as tmpdir:
                 with zipfile.ZipFile(zip_path, 'r') as zf:
@@ -318,7 +329,7 @@ class ConfigScreen(BaseScreen):
                 if os.path.exists(src_data):
                     if os.path.exists('data'):
                         shutil.rmtree('data')
-                    shutil.copytree(src_data, 'data')
+                    self._copiar_dir(src_data, 'data')
                     self.status_backup = (f"Reemplazado correctamente.\n"
                                           f"Backup anterior: {bak_dir}\n"
                                           f"Reinicia la aplicacion para ver los cambios.")
