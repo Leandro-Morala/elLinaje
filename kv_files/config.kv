@@ -284,3 +284,26 @@
             on_release:
                 app.root.transition.direction = 'right'
                 root.manager.current = 'main'
+
+        # --- VERSION ---
+        BoxLayout:
+            size_hint_y: None
+            height: '46dp'
+            canvas.before:
+                Color:
+                    rgba: 0.05, 0.05, 0.10, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.95, 0.78, 0.1, 0.22
+                Line:
+                    points: self.x, self.top, self.x + self.width, self.top
+                    width: 1
+            Label:
+                text: "El Linaje  v" + ".".join(str(x) for x in app.app_config.get("VERSION", [0,0,0]))
+                font_size: '12sp'
+                color: 0.42, 0.42, 0.52, 1
+                halign: 'center'
+                text_size: self.size
+                valign: 'middle'

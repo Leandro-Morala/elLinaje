@@ -26,7 +26,9 @@ class BaseScreen(Screen):
     y lo almacene como self.DM. ( self.player ) para mayor practicidad.
     """
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)        
+        self.ConfigFile = None
+        self.user = None
+        super().__init__(**kwargs)
         self.ConfigFile = App.get_running_app().getModel('ConfigFile')
         self.user = App.get_running_app().getModel('UsuariosModel')
         Logger.info("carga de BaseScreen terminada...")
@@ -42,7 +44,9 @@ class BaseScreen(Screen):
             return "--"
 
     def get_player_data_foto_perfil(self):
-        self.get_data('foto_perfil')
+        ruta = self.get_data('foto_perfil')
+        if ruta and ruta != '--' and os.path.exists(ruta):
+            return ruta
         return 'images/default_profile.png'
         
     def get_player_data_nombre(self):
@@ -113,29 +117,46 @@ class BaseScreen(Screen):
     @mainthread
     def abrir_explorador(self, modo='export'):
         """Abre un modal para seleccionar dónde guardar o qué archivo cargar."""
-        
-        # --- SOLUCIÓN PARA PERMISOS ANDROID ---
         if platform == 'android':
             from android.permissions import request_permissions, Permission
             def callback(permissions, results):
                 if all(results):
                     self._crear_popup_explorador(modo)
                 else:
-                    self.echo("Permisos denegados para acceder a archivos")
-            
+                    Clock.schedule_once(lambda dt: self.echo("Permisos denegados para acceder a archivos"), 0)
             request_permissions([
-                Permission.READ_EXTERNAL_STORAGE, 
+                Permission.READ_EXTERNAL_STORAGE,
                 Permission.WRITE_EXTERNAL_STORAGE
             ], callback)
         else:
             self._crear_popup_explorador(modo)
-    
+
+    def _get_storage_path(self):
+        if platform == 'android':
+            try:
+                from jnius import autoclass
+                activity = autoclass('org.kivy.android.PythonActivity').mActivity
+                ext_dir = activity.getExternalFilesDir(None)
+                if ext_dir:
+                    path = ext_dir.getAbsolutePath()
+                    os.makedirs(path, exist_ok=True)
+                    Logger.info(f"[storage] usando ext_dir: {path}")
+                    return path
+            except Exception as e:
+                Logger.error(f"[storage path jnius] {e}")
+            # fallback: directorio interno de la app
+            internal = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+            os.makedirs(internal, exist_ok=True)
+            Logger.info(f"[storage] fallback interno: {os.path.abspath(internal)}")
+            return os.path.abspath(internal)
+        return os.path.expanduser('~')
+
     @mainthread
     def _crear_popup_explorador(self, modo):
         content = BoxLayout(orientation='vertical', padding=dp(10), spacing=dp(10))
-        
+
         file_chooser = FileChooserListView(
-            path=os.path.expanduser("~"), 
+            path=self._get_storage_path(),
             filters=['*.bin'] if modo == 'import' else []
         )
         

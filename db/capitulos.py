@@ -141,7 +141,7 @@ class CapitulosModel(db):
             dias_restantes = (vida_seg - (ahora - ts_ref)) / 86400
 
             if score >= 0.4:
-                nuevos_dias = dias_restantes * 0.75
+                nuevos_dias = max(1.0, dias_restantes * 0.75)
             else:  # score == 0.0
                 nuevos_dias = max(1.0, dias_restantes * 0.5)
 

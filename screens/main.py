@@ -105,7 +105,8 @@ class MainScreen(BaseScreen):
         nivel = self.get_player_nivel() or 0
         self.nivel_label = f"Nivel  {nivel}"
         self.nivel_valor = min(int(nivel), 50)
-        
+        self.imagen_perfil = self.get_player_data_foto_perfil()
+
     def update_ui(self):
         self.updateplayer()
         self.start()

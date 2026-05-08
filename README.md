@@ -1,4 +1,5 @@
-# El Linaje, Hijos del Dios altimiso.
+# El Linaje, Nueva criatura en Cristo Jesus
+
 -> El proposito es que el usuario pueda tener 
     una relacion mas cercana a Dios, y gradualmente, 
     poder orar mas, una comprencion de las escrituras mas profunda, 

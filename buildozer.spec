@@ -7,7 +7,7 @@ title = El Linaje
 package.name = ElLinaje
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.leandro.morala
+package.domain = org.leandro.morala.elLinaje
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -33,7 +33,7 @@ source.exclude_dirs = data, oldata
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.3.2
+version = 0.3.9
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -46,7 +46,7 @@ version = 0.3.2
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
-requirements = python3, kivy, kivy_garden.zbarcam, cryptography, pyzbar, libzbar, pillow, jnius
+requirements = python3, kivy, kivy_garden.zbarcam, cryptography, pyzbar, libzbar, pillow, jnius, fpdf2
 
 # LOGOTIPO ----
 # (str) Presplash of the application
@@ -84,6 +84,13 @@ uathor = Leandro Morala
 # Android specific
 #
 
+android.release_artifact = aab
+## usa variables de entorno P4A_RELEASE_KEYSTORE_,,, VER ~/.bashrc
+## android.keystore = 
+## android.keystore_passwd = $AABPASSWD
+## android.keyalias = ellinaje
+## android.keyalias_passwd = $AABPASSWDELLINAJE
+
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
 
@@ -107,13 +114,14 @@ fullscreen = 0
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = CAMERA, INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
+android.permissions = CAMERA, INTERNET, (name=android.permission.READ_EXTERNAL_STORAGE;maxSdkVersion=32), (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=29), READ_MEDIA_IMAGES
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
 #android.api = 31
+android.api=33
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
@@ -164,6 +172,7 @@ android.permissions = CAMERA, INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_ST
 # (str) Extra xml to write directly inside the <manifest><application> tag of AndroidManifest.xml
 # use that parameter to provide a filename from where to load your custom XML arguments:
 #android.extra_manifest_application_arguments = ./src/android/extra_manifest_application_arguments.xml
+#android.extra_manifest_application_arguments = ./extra_app_args.txt
 
 # (str) Full name including package path of the Java class that implements Python Service
 # use that parameter to set custom Java class which extends PythonService

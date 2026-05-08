@@ -57,14 +57,18 @@ class VersesGameScreen(BaseScreen):
     # ------------------------------------------------------------------
 
     def on_enter(self, *args):
+        if not self.libros_nombres:
+            self._cargar_libros()
+        self._nuevo_verso()
+
+    def on_leave(self, *args):
+        # Procesar expirados al salir, no al entrar: el usuario debe poder
+        # renovar un versiculo antes de que sea eliminado.
         eliminados = self.capitulos_model.procesar_envejecimiento(1)
         if eliminados:
             nivel_actual = int(self.user.get_tag(1, 'nivel') or 0)
             self.user.set_tag(1, 'nivel', max(0, nivel_actual - eliminados))
-            Logger.info(f"[VersesGame] {eliminados} expirados, nivel {nivel_actual} -> {max(0, nivel_actual - eliminados)}")
-        if not self.libros_nombres:
-            self._cargar_libros()
-        self._nuevo_verso()
+            Logger.info(f"[VersesGame] {eliminados} expirados al salir, nivel {nivel_actual} -> {max(0, nivel_actual - eliminados)}")
 
     def _cargar_libros(self):
         if not self._rvr1960:
